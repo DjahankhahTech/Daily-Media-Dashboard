@@ -25,12 +25,20 @@ def mdm_queue(request: Request, session: Session = Depends(db_session)):
 
 
 @router.post("/articles/{article_id}/assess", name="assess_article")
-def assess_article(article_id: int, session: Session = Depends(db_session)):
-    """Step-4 stub: redirect to article detail with a marker. Step 6 will
-    enqueue a real MDM run and populate the assessment."""
-    # Deliberately not a 500 — a demo walkthrough can click this button and
-    # get back to the article page with no surprise traceback.
+def assess_article(
+    article_id: int, request: Request, session: Session = Depends(db_session)
+):
+    """Run the MDM pipeline for one article (stage 1 + stage 2) and
+    redirect back to the detail page. Failures are caught and surfaced
+    via the assessment row's ``failure_reason`` — no 500s."""
+    from ...classify.mdm_runner import assess_article as run_assess
+
+    try:
+        run_assess(session, article_id)
+    except LookupError:
+        raise HTTPException(404, f"article {article_id} not found")
+
     return RedirectResponse(
-        url=f"/articles/{article_id}?assess=pending",
+        url=str(request.url_for("article_detail", article_id=article_id)),
         status_code=303,
     )
