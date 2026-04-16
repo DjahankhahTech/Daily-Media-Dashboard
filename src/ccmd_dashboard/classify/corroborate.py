@@ -27,6 +27,12 @@ log = logging.getLogger(__name__)
 
 @lru_cache(maxsize=1)
 def _embedder():
+    """Return the embedder, or None if it cannot be loaded.
+
+    Both the missing-package path and the missing-local-model path cache
+    the ``None`` result so repeated calls don't log or retry. Corroboration
+    degrades cleanly to zero-count in that case.
+    """
     try:
         from sentence_transformers import SentenceTransformer  # type: ignore
     except ImportError:  # pragma: no cover - extras gate
@@ -35,8 +41,15 @@ def _embedder():
             "Install with `uv sync --extra classify`."
         )
         return None
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    return model
+    try:
+        return SentenceTransformer("all-MiniLM-L6-v2")
+    except Exception as exc:
+        log.warning(
+            "could not load all-MiniLM-L6-v2 (%s); corroboration returns 0. "
+            "Pre-download the model to enable corroboration.",
+            exc,
+        )
+        return None
 
 
 def _vector(text: str):

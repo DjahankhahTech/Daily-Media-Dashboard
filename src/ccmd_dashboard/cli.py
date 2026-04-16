@@ -169,9 +169,46 @@ def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False) -> No
 
 
 @app.command("demo")
-def demo() -> None:
-    """[Step 8] Load the canned demo dataset and start the UI in offline mode."""
-    raise typer.Exit(code=2)  # implemented in step 8
+def demo(
+    load_only: bool = typer.Option(
+        False, "--load-only",
+        help="Build the demo DB but don't start the web server.",
+    ),
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8000, "--port"),
+    no_mdm: bool = typer.Option(
+        False, "--no-mdm",
+        help="Skip MDM assessment during demo load (faster; demo UI shows "
+             "articles + AOR tags only).",
+    ),
+) -> None:
+    """Load the canned demo dataset and start the UI in offline mode.
+
+    Wipes the current database and rebuilds it from
+    src/ccmd_dashboard/demo_data.jsonl (50 articles across the 11 CCMDs
+    plus a handful of negatives), runs the AOR tagger, then assesses
+    every article with the stub Classifier. Runs fully offline — no
+    network, no API key required.
+    """
+    from .demo import build_demo_dataset
+
+    rprint("[bold]building demo dataset (offline, stub classifier)[/bold]")
+    stats = build_demo_dataset(run_mdm=not no_mdm)
+    rprint(
+        f"  articles loaded : {stats['articles']}\n"
+        f"  tagged AOR      : {stats['tagged']} ({stats['tags_written']} rows)\n"
+        f"  MDM assessed    : {stats['assessed']}"
+    )
+    if load_only:
+        rprint("[green]demo DB ready; --load-only set, not starting server[/green]")
+        return
+    rprint(f"[green]starting demo UI at http://{host}:{port}/[/green]")
+    import uvicorn
+
+    uvicorn.run(
+        "ccmd_dashboard.web.app:create_app",
+        host=host, port=port, factory=True,
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover
