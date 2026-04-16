@@ -82,10 +82,38 @@ def init_db(
 @app.command("ingest")
 def ingest(
     feed: str | None = typer.Option(None, "--feed", help="Feed name."),
-    since: str | None = typer.Option(None, "--since", help="ISO date."),
+    since: str | None = typer.Option(None, "--since", help="ISO date (YYYY-MM-DD)."),
+    no_extract: bool = typer.Option(
+        False, "--no-extract",
+        help="Skip trafilatura full-text extraction (feed summary only).",
+    ),
 ) -> None:
-    """[Step 2] Pull articles from one or all configured feeds."""
-    raise typer.Exit(code=2)  # implemented in step 2
+    """Pull articles from one or all configured feeds."""
+    from datetime import datetime as _dt
+
+    from .db import session_scope
+    from .ingest.pipeline import ingest_all
+
+    since_dt = _dt.fromisoformat(since) if since else None
+    with session_scope() as session:
+        results = ingest_all(
+            session,
+            feed_name=feed,
+            since=since_dt,
+            extract_full=not no_extract,
+        )
+
+    if not results:
+        rprint("[yellow]no feeds ingested[/yellow]")
+        raise typer.Exit(code=1)
+
+    total_new = 0
+    for stats in results:
+        rprint(stats.as_line())
+        total_new += stats.new
+        for err in stats.errors:
+            rprint(f"  [red]error[/red] {err}")
+    rprint(f"[green]{total_new} new article(s)[/green]")
 
 
 @app.command("tag")
