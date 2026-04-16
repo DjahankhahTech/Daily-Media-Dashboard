@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Daily brief — {{ day }}</title>
+<style>
+  @page { size: Letter; margin: 18mm 18mm 22mm 18mm; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 10.5pt; color: #111; }
+  .banner { border: 2px solid #7f1d1d; color: #7f1d1d; padding: 6px 10px;
+            text-align: center; font-weight: 700; margin-bottom: 10px; font-size: 10pt; }
+  h1 { font-size: 16pt; margin: 6pt 0 4pt 0; }
+  h2 { font-size: 12pt; margin: 12pt 0 4pt 0; border-bottom: 1px solid #bbb; padding-bottom: 2pt; }
+  h3 { font-size: 11pt; margin: 8pt 0 2pt 0; }
+  p.subtitle { color: #555; margin: 0 0 10pt; font-size: 9.5pt; }
+  .item { margin-bottom: 10pt; border-left: 3px solid #cbd5e1; padding-left: 8pt; }
+  .meta { color: #555; font-size: 9pt; margin-bottom: 3pt; }
+  .kv dt { font-weight: 600; margin-top: 4pt; font-size: 9pt; }
+  .kv dd { margin: 2pt 0 0 0; font-size: 10pt; }
+  .badge { display: inline-block; padding: 0 5pt; border: 1px solid #bbb;
+           border-radius: 6pt; font-size: 8.5pt; margin-right: 3pt; }
+  .state { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
+  .mdm-hc { background: #fee2e2; }
+  .mdm-sc { background: #fed7aa; }
+  .mdm-rv { background: #fef3c7; }
+  .mdm-lr { background: #dcfce7; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 4pt; }
+  td, th { border-bottom: 1px solid #eee; padding: 3pt 4pt; text-align: left; vertical-align: top; }
+  .footer { position: fixed; bottom: -15mm; left: 0; right: 0; text-align: center;
+            font-size: 8pt; color: #7f1d1d; }
+</style>
+</head>
+<body>
+  <div class="banner">{{ banner }}</div>
+  <h1>Daily brief — {{ day }}</h1>
+  <p class="subtitle">
+    Prepared {{ generated_at }} from the CCMD Media Intelligence Dashboard
+    prototype. Contains {{ items | length }} reviewed/flagged article(s)
+    across {{ ccmd_count }} command(s).
+  </p>
+
+  {% if not items %}
+    <p><em>No reviewed or flagged articles for this date.</em></p>
+  {% endif %}
+
+  {% for group in grouped %}
+    <h2>{{ group.ccmd }}</h2>
+    {% for item in group.articles %}
+      <div class="item">
+        <h3>{{ item.article.title }}</h3>
+        <div class="meta">
+          {{ item.feed.name }} ·
+          {% if item.article.published_at %}{{ item.article.published_at.strftime('%Y-%m-%d %H:%M') }}{% else %}no date{% endif %}
+          · <span class="badge">tier {{ item.feed.source_tier }}</span>
+          {% if item.feed.state_affiliation %}<span class="badge state">state: {{ item.feed.state_affiliation }}</span>{% endif %}
+          {% if item.latest_mdm %}
+            {% set c = item.latest_mdm.category.value %}
+            <span class="badge {% if c == 'high_concern' %}mdm-hc{% elif c == 'significant_concerns' %}mdm-sc{% elif c == 'requires_verification' %}mdm-rv{% elif c == 'likely_reliable' %}mdm-lr{% endif %}">
+              MDM: {{ c.replace('_', ' ') }}{% if item.latest_mdm.concern_score is not none %} · {{ item.latest_mdm.concern_score }}{% endif %}
+            </span>
+          {% endif %}
+          · <a href="{{ item.article.url }}">source</a>
+        </div>
+        {% if item.article.summary %}
+        <p>{{ item.article.summary | striptags | truncate(320) }}</p>
+        {% endif %}
+        {% if item.notes %}
+        <dl class="kv">
+          {% for n in item.notes %}
+            <dt>{{ n.analyst_id }} — {{ n.action_taken.value.replace('_', ' ') }}</dt>
+            <dd>
+              {% if n.observation %}<strong>observation:</strong> {{ n.observation }}<br/>{% endif %}
+              {% if n.significance %}<strong>significance:</strong> {{ n.significance }}<br/>{% endif %}
+              {% if n.recommended_action %}<strong>recommended action:</strong> {{ n.recommended_action }}{% endif %}
+            </dd>
+          {% endfor %}
+        </dl>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endfor %}
+
+  <div class="footer">{{ banner }}</div>
+</body>
+</html>

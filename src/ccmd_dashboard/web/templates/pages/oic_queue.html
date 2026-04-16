@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}OIC Flag Queue{% endblock %}
+{% block main %}
+<h1>OIC Flag Queue</h1>
+<p class="subtitle">
+  Articles any analyst has flagged for officer-in-charge attention. The
+  queue is ordered by flag time, most recent first.
+</p>
+
+{% if not items %}
+  <div class="diagnostic">No articles are currently flagged for OIC.</div>
+{% endif %}
+
+<div class="card-list">
+  {% for i in items %}
+  <div class="card">
+    <div class="head">
+      <a class="title" href="{{ url_for('article_detail', article_id=i.article.id) }}">{{ i.article.title }}</a>
+    </div>
+    <div class="meta">
+      flagged by {{ i.note.analyst_id }} · {{ i.note.created_at.strftime('%Y-%m-%d %H:%M') }} ·
+      {{ i.feed.name }}
+      {% if i.feed.state_affiliation %}<span class="badge state">state: {{ i.feed.state_affiliation }}</span>{% endif %}
+    </div>
+    <dl class="kv">
+      {% if i.note.observation %}<dt>observation</dt><dd>{{ i.note.observation }}</dd>{% endif %}
+      {% if i.note.significance %}<dt>significance</dt><dd>{{ i.note.significance }}</dd>{% endif %}
+      {% if i.note.recommended_action %}<dt>recommended action</dt><dd>{{ i.note.recommended_action }}</dd>{% endif %}
+    </dl>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

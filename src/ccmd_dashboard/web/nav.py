@@ -31,5 +31,6 @@ def build_tabs(request: Request, session: Session) -> list[Tab]:
     tabs.append(Tab(code="UNASSIGNED", label="Unassigned", href=str(request.url_for("unassigned_view"))))
     tabs.append(Tab(code="MDM", label="MDM Queue", href=str(request.url_for("mdm_queue"))))
     tabs.append(Tab(code="NOTES", label="Analyst Notes", href=str(request.url_for("notes_view"))))
+    tabs.append(Tab(code="OIC", label="OIC Queue", href=str(request.url_for("oic_queue"))))
     tabs.append(Tab(code="ABOUT", label="About", href=str(request.url_for("about_view"))))
     return tabs
