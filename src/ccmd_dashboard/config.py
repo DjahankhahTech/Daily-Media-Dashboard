@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     # Classifier selection: "stub" or "anthropic"
     classifier: str = "stub"
     anthropic_api_key: str | None = None
-    anthropic_model: str = "claude-sonnet-4-6"
+    anthropic_model: str = "claude-opus-4-7"
 
     # Ingestion
     http_timeout_seconds: float = 10.0
