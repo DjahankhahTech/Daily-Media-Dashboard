@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title | truncate(50) }}{% endblock %}
+{% block main %}
+<p class="muted"><a href="{{ referrer }}">← back</a></p>
+<h1>{{ article.title }}</h1>
+<div class="detail-header">
+  <span class="badge tier-{{ feed.source_tier }}">tier {{ feed.source_tier }}</span>
+  {% if feed.state_affiliation %}<span class="badge state">state: {{ feed.state_affiliation }}</span>{% endif %}
+  {% for tag in tags %}
+    <span class="badge ccmd">{{ tag.ccmd_code }} · {{ '%.2f' % tag.match_score }}</span>
+  {% endfor %}
+  {% if latest_mdm %}
+    <span class="badge mdm-{{ latest_mdm.category.value }}">
+      MDM: {{ latest_mdm.category.value.replace('_', ' ') }}
+      {% if latest_mdm.concern_score is not none %} · {{ latest_mdm.concern_score }}{% endif %}
+    </span>
+  {% endif %}
+</div>
+
+<div class="meta muted" style="margin-top: 8px">
+  {{ feed.name }} ·
+  {% if article.published_at %}{{ article.published_at.strftime('%Y-%m-%d %H:%M') }}{% else %}no date{% endif %}
+  · <a href="{{ article.url }}" target="_blank" rel="noopener">source link ↗</a>
+</div>
+
+{% if article.summary %}
+<h2>Summary</h2>
+<p>{{ article.summary | striptags }}</p>
+{% endif %}
+
+<h2>Extracted body</h2>
+<div class="card">{% if article.raw_text %}<pre style="white-space: pre-wrap; font-family: inherit">{{ article.raw_text }}</pre>{% else %}<span class="muted">no extracted body — see source link</span>{% endif %}</div>
+
+<h2>MDM assessment</h2>
+{% if latest_mdm %}
+<div class="card">
+  <div class="head">
+    <strong>Concern score: {{ latest_mdm.concern_score }}</strong>
+    <span class="badge mdm-{{ latest_mdm.category.value }}">{{ latest_mdm.category.value.replace('_', ' ') }}</span>
+    <span class="muted mono">{{ latest_mdm.classifier_version }} · {{ latest_mdm.assessed_at.strftime('%Y-%m-%d %H:%M') }}</span>
+  </div>
+  {% if latest_mdm.reasoning_breakdown.sub_signals %}
+  <h3>Reasoning breakdown</h3>
+  <table class="plain">
+    <thead><tr><th>sub-signal</th><th>value</th><th>weight</th><th>contribution</th><th>explanation</th></tr></thead>
+    <tbody>
+      {% for sig in latest_mdm.reasoning_breakdown.sub_signals %}
+      <tr>
+        <td class="mono">{{ sig.name }}</td>
+        <td>{{ sig.value }}</td>
+        <td>{{ sig.weight }}</td>
+        <td>{{ sig.contribution }}</td>
+        <td>{{ sig.explanation }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% else %}
+<div class="diagnostic">No MDM assessment yet for this article.</div>
+{% endif %}
+
+<div class="detail-actions">
+  <form method="post" action="{{ url_for('assess_article', article_id=article.id) }}">
+    <button type="submit">Assess (MDM)</button>
+  </form>
+  <form method="post" action="{{ url_for('add_note_form', article_id=article.id) }}" style="display:inline">
+    <button type="submit" class="secondary">Add note</button>
+  </form>
+</div>
+
+<h2>Analyst notes ({{ notes | length }})</h2>
+<div class="card-list">
+  {% for n in notes %}
+  <div class="card">
+    <div class="meta">{{ n.analyst_id }} · {{ n.created_at.strftime('%Y-%m-%d %H:%M') }} · {{ n.action_taken.value.replace('_', ' ') }}</div>
+    <dl class="kv">
+      {% if n.observation %}<dt>observation</dt><dd>{{ n.observation }}</dd>{% endif %}
+      {% if n.significance %}<dt>significance</dt><dd>{{ n.significance }}</dd>{% endif %}
+      {% if n.recommended_action %}<dt>recommended action</dt><dd>{{ n.recommended_action }}</dd>{% endif %}
+      {% if n.note %}<dt>note</dt><dd>{{ n.note }}</dd>{% endif %}
+    </dl>
+  </div>
+  {% endfor %}
+  {% if not notes %}<div class="diagnostic">No notes yet.</div>{% endif %}
+</div>
+
+<h2>Add note</h2>
+<form method="post" action="{{ url_for('add_note', article_id=article.id) }}" class="card">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <label>observation<textarea name="observation" rows="2" style="width:100%"></textarea></label>
+    <label>significance<textarea name="significance" rows="2" style="width:100%"></textarea></label>
+    <label>recommended action<textarea name="recommended_action" rows="2" style="width:100%"></textarea></label>
+    <label>action taken
+      <select name="action_taken">
+        <option value="reviewed">reviewed</option>
+        <option value="flagged_for_oic">flagged for OIC</option>
+        <option value="escalated">escalated</option>
+        <option value="dismissed">dismissed</option>
+      </select>
+    </label>
+    <button type="submit" style="align-self: start">Save note</button>
+  </div>
+</form>
+{% endblock %}

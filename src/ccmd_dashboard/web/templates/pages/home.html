@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block main %}
+<h1>CCMD Media Intelligence Dashboard</h1>
+<p class="subtitle">
+  Unclassified open-source aggregation across {{ ccmd_count }} combatant commands
+  from {{ feed_count }} feeds. {{ article_count }} articles currently ingested,
+  {{ tagged_count }} with AOR tags.
+</p>
+
+<h2>Per-CCMD article volume</h2>
+<table class="plain">
+  <thead>
+    <tr><th>CCMD</th><th>Articles</th><th>Reviewed</th><th>Flagged</th><th>MDM assessed</th></tr>
+  </thead>
+  <tbody>
+    {% for row in ccmd_rows %}
+    <tr>
+      <td><a href="{{ row.href }}">{{ row.code }}</a> <span class="muted">{{ row.name }}</span></td>
+      <td>{{ row.total }}</td>
+      <td>{{ row.reviewed }}</td>
+      <td>{{ row.flagged }}</td>
+      <td>{{ row.assessed }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if unassigned_count %}
+<div class="diagnostic" style="margin-top: 12px">
+  {{ unassigned_count }} article(s) are unassigned (no AOR match). Check the
+  <a href="{{ url_for('unassigned_view') }}">Unassigned tab</a>.
+</div>
+{% endif %}
+{% endblock %}

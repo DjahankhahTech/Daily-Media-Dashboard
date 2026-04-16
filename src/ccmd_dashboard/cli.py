@@ -155,9 +155,17 @@ def eval_aor() -> None:
 
 
 @app.command("serve")
-def serve(host: str = "127.0.0.1", port: int = 8000) -> None:
-    """[Step 4] Launch the FastAPI + HTMX web UI."""
-    raise typer.Exit(code=2)  # implemented in step 4
+def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False) -> None:
+    """Launch the FastAPI + HTMX web UI."""
+    import uvicorn
+
+    uvicorn.run(
+        "ccmd_dashboard.web.app:create_app",
+        host=host,
+        port=port,
+        factory=True,
+        reload=reload,
+    )
 
 
 @app.command("demo")

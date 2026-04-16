@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}MDM Queue{% endblock %}
+{% block main %}
+<h1>MDM Queue</h1>
+<p class="subtitle">
+  Articles that have been assessed by the MDM pipeline. The analyst chooses
+  when to assess — this dashboard is a decision-support tool, not an
+  autolabeler.
+</p>
+
+{% include "partials/filters.html" %}
+
+<div class="card-list">
+  {% for a in articles %}
+    {% include "partials/article_card.html" %}
+  {% endfor %}
+  {% if not articles %}
+    <div class="diagnostic">No MDM assessments yet. Open any article and click "Assess" to queue one.</div>
+  {% endif %}
+</div>
+{% endblock %}

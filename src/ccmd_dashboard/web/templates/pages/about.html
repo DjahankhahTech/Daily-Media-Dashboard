@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block main %}
+<h1>About this dashboard</h1>
+<p class="subtitle">Methodology, scope, feeds, and known limitations.</p>
+
+<h2>Banner policy</h2>
+<p class="mono diagnostic">{{ banner }}</p>
+
+<h2>AOR tagging</h2>
+<p>
+  Articles are mapped to combatant commands by combining spaCy NER output
+  (GPE/ORG/PERSON/LOC/FAC/EVENT/NORP entities) with keyword matching
+  against <span class="mono">config/ccmd_aor.yaml</span>. Entity matches
+  are weighted 2× because the NER model has already resolved ambiguity;
+  keyword matches are cheaper but noisier. An article may map to 0, 1, or
+  many CCMDs. Everything below the score threshold goes to the
+  <a href="{{ url_for('unassigned_view') }}">Unassigned</a> bucket.
+</p>
+
+<h2>MDM scoring</h2>
+<p>
+  Two-stage, explainable. Stage 1 (LLM) returns structured features —
+  verifiable claims, emotional language, fallacies, unsourced assertions,
+  temporal claims, source transparency. Stage 2 (deterministic, code in
+  <span class="mono">classify/scoring.py</span>) combines those features
+  with source tier, state-affiliation, and corroboration count to produce
+  a concern score. Every sub-signal and its weight is stored in the
+  assessment's reasoning breakdown and surfaced in the UI.
+</p>
+
+<h2>CCMDs ({{ ccmds | length }})</h2>
+<table class="plain">
+  <thead><tr><th>code</th><th>name</th><th>type</th><th>description</th></tr></thead>
+  <tbody>
+    {% for c in ccmds %}
+    <tr>
+      <td><span class="mono">{{ c.code }}</span></td>
+      <td><a href="{{ url_for('ccmd_view', code=c.code) }}">{{ c.name }}</a></td>
+      <td>{{ c.aor_type.value }}</td>
+      <td>{{ c.description or '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Feeds ({{ feeds | length }})</h2>
+<table class="plain">
+  <thead><tr><th>name</th><th>tier</th><th>state</th><th>active</th><th>last fetch</th></tr></thead>
+  <tbody>
+    {% for f in feeds %}
+    <tr>
+      <td>{{ f.name }}</td>
+      <td><span class="badge tier-{{ f.source_tier }}">tier {{ f.source_tier }}</span></td>
+      <td>{{ f.state_affiliation or '' }}</td>
+      <td>{{ 'yes' if f.active else 'no' }}</td>
+      <td>{{ f.last_fetched_at.strftime('%Y-%m-%d %H:%M') if f.last_fetched_at else '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Not in scope for this prototype</h2>
+<ul>
+  <li>No authentication beyond the analyst-picker dropdown (localhost assumed).</li>
+  <li>No classification marking on outputs — schema is ready but the UI does not expose it.</li>
+  <li>No paste-in analysis of arbitrary text.</li>
+  <li>No real-time alerting.</li>
+  <li>No .mil data, no CUI, no PII.</li>
+</ul>
+{% endblock %}
