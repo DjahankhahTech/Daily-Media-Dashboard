@@ -1,0 +1,33 @@
+# uv / python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.python-version-local
+*.egg-info/
+build/
+dist/
+
+# DB / data artifacts
+data/*.db
+data/*.db-journal
+data/raw_feeds/
+!data/.gitkeep
+
+# spaCy models cached locally
+.cache/
+.models/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# pytest / ruff
+.pytest_cache/
+.ruff_cache/
+
+# env
+.env
+.env.local

@@ -1,0 +1,176 @@
+# Feed catalog.
+#
+# source_tier semantics:
+#   1 = USG official (service / CCMD / DoD public affairs)
+#   2 = professional defense trade press
+#   3 = wire services, regional press, state-affiliated media
+#
+# Feeds with ``todo: true`` are URL placeholders — the ingest CLI will
+# skip them until an analyst verifies the URL, updates this file, and
+# re-runs ``dashboard init-db`` (or a future ``dashboard feeds reload``).
+#
+# state_affiliation is populated (ISO-3166 alpha-2) for feeds that are
+# known instruments of a specific government's messaging apparatus.
+# The UI badges these feeds distinctly; the MDM scorer weights them.
+
+feeds:
+  # --- Tier 1: USG official --------------------------------------------------
+  - name: DoD News
+    url: https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=20
+    source_tier: 1
+    notes: defense.gov top news RSS.
+  - name: Army News
+    url: https://www.army.mil/rss/static/2.xml
+    source_tier: 1
+    notes: army.mil public affairs.
+  - name: Navy News
+    url: https://www.navy.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1052&max=20
+    source_tier: 1
+    notes: navy.mil top stories.
+  - name: Air Force News
+    url: https://www.af.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1060&max=20
+    source_tier: 1
+    notes: af.mil public affairs.
+  - name: Marines News
+    url: https://www.marines.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1&max=20
+    source_tier: 1
+    notes: marines.mil all stories.
+  - name: Space Force News
+    url: https://www.spaceforce.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1060&max=20
+    source_tier: 1
+    todo: true
+    notes: TODO — verify correct site id for spaceforce.mil RSS.
+  - name: DVIDS News
+    url: https://www.dvidshub.net/rss/news
+    source_tier: 1
+    notes: DVIDS aggregate news RSS.
+  - name: Stars and Stripes
+    url: https://www.stripes.com/rss
+    source_tier: 1
+    notes: DoD-sanctioned independent news.
+  - name: AFRICOM PA
+    url: https://www.africom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=15&max=20
+    source_tier: 1
+    todo: true
+    notes: TODO — verify AFRICOM site id.
+  - name: CENTCOM PA
+    url: https://www.centcom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1147&max=20
+    source_tier: 1
+    todo: true
+    notes: TODO — verify CENTCOM site id.
+  - name: EUCOM PA
+    url: https://www.eucom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=513&max=20
+    source_tier: 1
+    todo: true
+    notes: TODO — verify EUCOM site id.
+  - name: INDOPACOM PA
+    url: https://www.pacom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=532&max=20
+    source_tier: 1
+    todo: true
+    notes: TODO — verify INDOPACOM site id.
+  - name: NORTHCOM PA
+    url: https://www.northcom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1019&max=20
+    source_tier: 1
+    todo: true
+    notes: TODO — verify NORTHCOM site id.
+  - name: SOUTHCOM PA
+    url: https://www.southcom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1010&max=20
+    source_tier: 1
+    todo: true
+    notes: TODO — verify SOUTHCOM site id.
+  - name: SOCOM PA
+    url: https://www.socom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1&max=20
+    source_tier: 1
+    todo: true
+    notes: TODO — verify SOCOM site id.
+
+  # --- Tier 2: Defense trade press ------------------------------------------
+  - name: Breaking Defense
+    url: https://breakingdefense.com/feed/
+    source_tier: 2
+  - name: Defense News
+    url: https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml
+    source_tier: 2
+  - name: War on the Rocks
+    url: https://warontherocks.com/feed/
+    source_tier: 2
+  - name: The War Zone (The Drive)
+    url: https://www.thedrive.com/the-war-zone/rss
+    source_tier: 2
+    todo: true
+    notes: TODO — confirm current RSS endpoint after 2024 platform move.
+  - name: Naval News
+    url: https://www.navalnews.com/feed/
+    source_tier: 2
+  - name: Janes Open Content
+    url: https://www.janes.com/feeds/news
+    source_tier: 2
+    todo: true
+    notes: TODO — confirm which Janes endpoints are open-access.
+
+  # --- Tier 3: Wire + regional + state-affiliated ---------------------------
+  - name: Reuters World
+    url: https://www.reutersagency.com/feed/?best-topics=political-general&post_type=best
+    source_tier: 3
+    todo: true
+    notes: TODO — Reuters moved from free RSS; validate or replace.
+  - name: AP Top News
+    url: https://feeds.apnews.com/rss/apf-topnews
+    source_tier: 3
+    todo: true
+    notes: TODO — verify AP public RSS availability.
+  - name: AFP English
+    url: https://www.afp.com/en/rss.xml
+    source_tier: 3
+    todo: true
+    notes: TODO — confirm endpoint.
+  - name: Al Jazeera English
+    url: https://www.aljazeera.com/xml/rss/all.xml
+    source_tier: 3
+  - name: TASS English
+    url: https://tass.com/rss/v2.xml
+    source_tier: 3
+    state_affiliation: RU
+    notes: Russian state news agency.
+  - name: Xinhua English
+    url: https://english.news.cn/rss/worldRss.xml
+    source_tier: 3
+    state_affiliation: CN
+    todo: true
+    notes: TODO — verify Xinhua English RSS path (has changed).
+  - name: Global Times
+    url: https://www.globaltimes.cn/rss/outbrain.xml
+    source_tier: 3
+    state_affiliation: CN
+  - name: PressTV
+    url: https://www.presstv.ir/rss.xml
+    source_tier: 3
+    state_affiliation: IR
+  - name: KCNA Watch
+    url: https://kcnawatch.org/feed/
+    source_tier: 3
+    state_affiliation: KP
+    notes: >-
+      KCNA Watch mirrors KCNA output (KCNA's own site is often
+      unreachable from the US). State_affiliation reflects the
+      underlying source.
+  - name: Kyodo News English
+    url: https://english.kyodonews.net/rss/news.xml
+    source_tier: 3
+    todo: true
+    notes: TODO — verify Kyodo English RSS.
+  - name: Yonhap News English
+    url: https://en.yna.co.kr/RSS/news.xml
+    source_tier: 3
+    todo: true
+    notes: TODO — verify Yonhap English feed path.
+  - name: Hindustan Times Defence
+    url: https://www.hindustantimes.com/feeds/rss/india-news/defence/rssfeed.xml
+    source_tier: 3
+    todo: true
+    notes: TODO — verify Hindustan Times defence feed path.
+  - name: DefenceHub TR
+    url: https://www.defencehub.tr/feed/
+    source_tier: 3
+    todo: true
+    notes: TODO — confirm canonical DefenceHub RSS URL.
