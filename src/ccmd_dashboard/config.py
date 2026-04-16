@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     corroboration_similarity_threshold: float = 0.70
     corroboration_window_hours: int = 72
 
+    # AOR tagger
+    # Prefer en_core_web_trf (transformer, better for named entities in
+    # defense text); fall back to en_core_web_sm in dev / offline envs.
+    spacy_model: str = "en_core_web_trf"
+    spacy_fallback_model: str = "en_core_web_sm"
+    aor_min_match_score: float = 0.02
+
     def ensure_dirs(self) -> None:
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.raw_feed_dir.mkdir(parents=True, exist_ok=True)

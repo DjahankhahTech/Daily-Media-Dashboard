@@ -121,8 +121,37 @@ def tag(
     article_id: int | None = typer.Option(None, "--article-id"),
     recompute: bool = typer.Option(False, "--recompute"),
 ) -> None:
-    """[Step 3] Run the AOR tagger over one or all articles."""
-    raise typer.Exit(code=2)  # implemented in step 3
+    """Run the AOR tagger over one or all articles."""
+    from .classify.aor_runner import tag_all_untagged, tag_one
+    from .db import session_scope
+
+    with session_scope() as session:
+        if article_id is not None:
+            rows = tag_one(session, article_id, recompute=recompute)
+            if rows is None:
+                rprint(f"[red]article {article_id} not found[/red]")
+                raise typer.Exit(code=1)
+            rprint(f"article {article_id}: {len(rows)} tag(s)")
+            for r in rows:
+                rprint(f"  {r.ccmd_code:<10} score={r.match_score:.4f} "
+                       f"terms={r.matched_terms[:5]}")
+        else:
+            processed, written = tag_all_untagged(session, recompute=recompute)
+            rprint(f"[green]tagged {processed} article(s), wrote {written} row(s)[/green]")
+
+
+@app.command("eval-aor")
+def eval_aor() -> None:
+    """Run the AOR tagger against the hand-labeled eval set and print P/R/F1."""
+    from pathlib import Path as _P
+    from .classify.eval_harness import evaluate, load_eval_set
+
+    eval_path = _P(__file__).resolve().parents[2] / "tests" / "aor_eval.jsonl"
+    if not eval_path.exists():
+        rprint(f"[red]eval set missing: {eval_path}[/red]")
+        raise typer.Exit(code=1)
+    report = evaluate(load_eval_set(eval_path))
+    rprint(report.as_table())
 
 
 @app.command("serve")

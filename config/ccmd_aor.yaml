@@ -31,26 +31,26 @@ ccmds:
       AOR covers roughly half the Earth's surface, from the U.S. west coast
       to the western border of India, including the Indian and Pacific Oceans.
     countries:
-      - JP
-      - KR
-      - KP
-      - CN
-      - TW
-      - PH
-      - VN
-      - TH
-      - MY
-      - SG
-      - ID
-      - AU
-      - NZ
-      - IN
-      - LK
-      - BD
-      - MM
-      - MN
-      - FJ
-      - PG
+      - "JP"
+      - "KR"
+      - "KP"
+      - "CN"
+      - "TW"
+      - "PH"
+      - "VN"
+      - "TH"
+      - "MY"
+      - "SG"
+      - "ID"
+      - "AU"
+      - "NZ"
+      - "IN"
+      - "LK"
+      - "BD"
+      - "MM"
+      - "MN"
+      - "FJ"
+      - "PG"
     regional_keywords:
       - First Island Chain
       - Second Island Chain
@@ -120,26 +120,26 @@ ccmds:
       Afghanistan, and the maritime chokepoints of the Strait of Hormuz and
       Bab-el-Mandeb.
     countries:
-      - AF
-      - BH
-      - EG
-      - IR
-      - IQ
-      - JO
-      - KW
-      - LB
-      - OM
-      - PK
-      - QA
-      - SA
-      - SY
-      - TJ
-      - TM
-      - AE
-      - UZ
-      - YE
-      - KZ
-      - KG
+      - "AF"
+      - "BH"
+      - "EG"
+      - "IR"
+      - "IQ"
+      - "JO"
+      - "KW"
+      - "LB"
+      - "OM"
+      - "PK"
+      - "QA"
+      - "SA"
+      - "SY"
+      - "TJ"
+      - "TM"
+      - "AE"
+      - "UZ"
+      - "YE"
+      - "KZ"
+      - "KG"
     regional_keywords:
       - Strait of Hormuz
       - Bab-el-Mandeb
@@ -190,49 +190,49 @@ ccmds:
       AOR covers 51 countries across Europe, Russia, parts of the Middle
       East and the Arctic, including all of NATO's European members.
     countries:
-      - GB
-      - FR
-      - DE
-      - IT
-      - ES
-      - PL
-      - NL
-      - BE
-      - NO
-      - SE
-      - FI
-      - DK
-      - IS
-      - IE
-      - PT
-      - CZ
-      - SK
-      - HU
-      - AT
-      - CH
-      - RO
-      - BG
-      - GR
-      - HR
-      - SI
-      - EE
-      - LV
-      - LT
-      - UA
-      - RU
-      - BY
-      - MD
-      - GE
-      - AM
-      - AZ
-      - RS
-      - ME
-      - MK
-      - AL
-      - BA
-      - XK
-      - CY
-      - MT
+      - "GB"
+      - "FR"
+      - "DE"
+      - "IT"
+      - "ES"
+      - "PL"
+      - "NL"
+      - "BE"
+      - "NO"
+      - "SE"
+      - "FI"
+      - "DK"
+      - "IS"
+      - "IE"
+      - "PT"
+      - "CZ"
+      - "SK"
+      - "HU"
+      - "AT"
+      - "CH"
+      - "RO"
+      - "BG"
+      - "GR"
+      - "HR"
+      - "SI"
+      - "EE"
+      - "LV"
+      - "LT"
+      - "UA"
+      - "RU"
+      - "BY"
+      - "MD"
+      - "GE"
+      - "AM"
+      - "AZ"
+      - "RS"
+      - "ME"
+      - "MK"
+      - "AL"
+      - "BA"
+      - "XK"
+      - "CY"
+      - "MT"
     regional_keywords:
       - NATO
       - Article 5
@@ -291,59 +291,59 @@ ccmds:
       AOR covers the African continent (less Egypt, which is CENTCOM),
       adjacent waters, and Cabo Verde.
     countries:
-      - DZ
-      - AO
-      - BJ
-      - BW
-      - BF
-      - BI
-      - CM
-      - CV
-      - CF
-      - TD
-      - KM
-      - CD
-      - CG
-      - CI
-      - DJ
-      - GQ
-      - ER
-      - SZ
-      - ET
-      - GA
-      - GM
-      - GH
-      - GN
-      - GW
-      - KE
-      - LS
-      - LR
-      - LY
-      - MG
-      - MW
-      - ML
-      - MR
-      - MU
-      - MA
-      - MZ
-      - NA
-      - NE
-      - NG
-      - RW
-      - ST
-      - SN
-      - SC
-      - SL
-      - SO
-      - ZA
-      - SS
-      - SD
-      - TZ
-      - TG
-      - TN
-      - UG
-      - ZM
-      - ZW
+      - "DZ"
+      - "AO"
+      - "BJ"
+      - "BW"
+      - "BF"
+      - "BI"
+      - "CM"
+      - "CV"
+      - "CF"
+      - "TD"
+      - "KM"
+      - "CD"
+      - "CG"
+      - "CI"
+      - "DJ"
+      - "GQ"
+      - "ER"
+      - "SZ"
+      - "ET"
+      - "GA"
+      - "GM"
+      - "GH"
+      - "GN"
+      - "GW"
+      - "KE"
+      - "LS"
+      - "LR"
+      - "LY"
+      - "MG"
+      - "MW"
+      - "ML"
+      - "MR"
+      - "MU"
+      - "MA"
+      - "MZ"
+      - "NA"
+      - "NE"
+      - "NG"
+      - "RW"
+      - "ST"
+      - "SN"
+      - "SC"
+      - "SL"
+      - "SO"
+      - "ZA"
+      - "SS"
+      - "SD"
+      - "TZ"
+      - "TG"
+      - "TN"
+      - "UG"
+      - "ZM"
+      - "ZW"
     regional_keywords:
       - Sahel
       - Horn of Africa
@@ -384,7 +384,7 @@ ccmds:
     description: >-
       Homeland defense AOR covering the United States, Canada, Mexico, the
       Bahamas, and surrounding waters (to approximately 500nm).
-    countries: [US, CA, MX, BS]
+    countries: ["US", "CA", "MX", "BS"]
     regional_keywords:
       - NORAD
       - homeland defense
@@ -401,30 +401,30 @@ ccmds:
       AOR covers Central and South America, the Caribbean (less the
       Bahamas), and surrounding waters.
     countries:
-      - AR
-      - BZ
-      - BO
-      - BR
-      - CL
-      - CO
-      - CR
-      - CU
-      - DO
-      - EC
-      - SV
-      - GT
-      - GY
-      - HT
-      - HN
-      - JM
-      - NI
-      - PA
-      - PY
-      - PE
-      - SR
-      - TT
-      - UY
-      - VE
+      - "AR"
+      - "BZ"
+      - "BO"
+      - "BR"
+      - "CL"
+      - "CO"
+      - "CR"
+      - "CU"
+      - "DO"
+      - "EC"
+      - "SV"
+      - "GT"
+      - "GY"
+      - "HT"
+      - "HN"
+      - "JM"
+      - "NI"
+      - "PA"
+      - "PY"
+      - "PE"
+      - "SR"
+      - "TT"
+      - "UY"
+      - "VE"
     regional_keywords:
       - Darien Gap
       - Tri-Border Area
