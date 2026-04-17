@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Geographic map{% endblock %}
+{% block main %}
+<h1>Geographic layout</h1>
+<p class="subtitle">
+  Stylised world projection. Each coloured zone is a combatant command area
+  of responsibility — click a zone (or the legend row) to filter the feed
+  to that CCMD. Article counts reflect current AOR-tagged coverage.
+  Functional commands are listed below the map.
+</p>
+
+<div class="map-wrap">
+  <svg class="map-svg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg"
+       role="img" aria-label="World map showing combatant command AORs">
+    <defs>
+      <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6"
+               patternTransform="rotate(45)">
+        <rect width="6" height="6" fill="transparent"/>
+        <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+      </pattern>
+    </defs>
+
+    <!-- Ocean background -->
+    <rect class="ocean" x="0" y="0" width="1000" height="500"/>
+
+    <!-- Latitude / longitude graticule (every 30°). -->
+    <g class="graticule">
+      {% for lon in [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150] %}
+        <line x1="{{ (lon + 180) * 1000 / 360 }}" y1="0"
+              x2="{{ (lon + 180) * 1000 / 360 }}" y2="500"/>
+      {% endfor %}
+      {% for lat in [-60, -30, 0, 30, 60] %}
+        <line x1="0" y1="{{ (90 - lat) * 500 / 180 }}"
+              x2="1000" y2="{{ (90 - lat) * 500 / 180 }}"/>
+      {% endfor %}
+    </g>
+
+    <!-- Simplified continents (stylised blobs). Equirectangular projection. -->
+    <g class="land">
+      <!-- North America -->
+      <path d="M 90,110 Q 140,90 200,100 L 260,115 L 280,150 L 290,195 L 270,220
+               L 240,230 L 200,240 L 170,235 L 145,220 L 125,200 L 110,175
+               L 100,150 Q 85,130 90,110 Z"/>
+      <!-- Central America + Caribbean strip -->
+      <path d="M 230,235 L 265,245 L 280,265 L 290,280 L 275,285 L 250,275 L 235,255 Z"/>
+      <!-- South America -->
+      <path d="M 275,270 L 310,280 L 335,305 L 340,340 L 335,380 L 315,415
+               L 290,430 L 275,420 L 265,395 L 268,360 L 272,325 L 270,295 Z"/>
+      <!-- Greenland -->
+      <path d="M 320,70 L 360,70 L 370,95 L 355,110 L 325,105 L 315,90 Z"/>
+      <!-- Europe -->
+      <path d="M 475,115 L 520,110 L 560,120 L 575,140 L 560,160 L 540,175
+               L 510,180 L 485,170 L 470,150 L 470,130 Z"/>
+      <!-- Africa -->
+      <path d="M 490,195 L 545,190 L 575,210 L 590,240 L 600,280 L 590,320
+               L 570,350 L 545,370 L 520,365 L 500,340 L 490,305 L 490,265
+               L 485,225 Z"/>
+      <!-- Middle East / Arabian Peninsula -->
+      <path d="M 580,200 L 625,205 L 640,230 L 625,255 L 600,260 L 580,240 Z"/>
+      <!-- Russia / Asia landmass -->
+      <path d="M 560,90 L 640,90 L 730,100 L 810,110 L 860,125 L 870,150
+               L 850,170 L 800,175 L 750,170 L 700,165 L 660,160 L 625,150
+               L 595,140 L 570,125 Z"/>
+      <!-- India subcontinent -->
+      <path d="M 680,200 L 720,210 L 725,240 L 705,260 L 685,255 L 670,235 L 670,215 Z"/>
+      <!-- Southeast Asia / Indochina -->
+      <path d="M 735,225 L 770,225 L 785,245 L 780,265 L 760,275 L 745,265 L 735,245 Z"/>
+      <!-- China / East Asia coast -->
+      <path d="M 765,165 L 820,170 L 845,190 L 850,215 L 835,235 L 810,240
+               L 785,230 L 765,210 L 760,185 Z"/>
+      <!-- Japan -->
+      <path d="M 855,180 L 875,175 L 885,195 L 878,215 L 860,215 L 852,200 Z"/>
+      <!-- Philippines / Indonesia -->
+      <path d="M 800,260 L 830,260 L 855,275 L 870,290 L 850,300 L 820,295 L 800,280 Z"/>
+      <!-- Australia -->
+      <path d="M 815,330 L 880,330 L 905,350 L 900,380 L 865,395 L 830,390
+               L 810,370 L 805,345 Z"/>
+      <!-- New Zealand -->
+      <path d="M 920,395 L 940,395 L 945,415 L 930,425 L 918,415 Z"/>
+      <!-- Antarctica strip -->
+      <path d="M 50,470 L 250,470 L 450,475 L 650,475 L 850,470 L 950,470 L 950,500 L 50,500 Z"/>
+    </g>
+
+    <!-- ================= AOR zones ================= -->
+    <!-- NORTHCOM: US/Canada/Mexico/Bahamas -->
+    <a href="{{ url_for('ccmd_view', code='NORTHCOM') }}">
+      <path class="aor" fill="var(--ccmd-NORTHCOM)" stroke="var(--ccmd-NORTHCOM)"
+            d="M 75,60 L 300,60 L 305,130 L 295,200 L 280,245 L 250,265 L 220,270
+               L 195,265 L 170,255 L 145,240 L 120,220 L 100,195 L 85,160 L 75,110 Z">
+        <title>NORTHCOM — {{ geo_rows | selectattr('code','equalto','NORTHCOM') | map(attribute='count') | first }} article(s)</title>
+      </path>
+    </a>
+    <!-- SOUTHCOM: Central + South America + Caribbean -->
+    <a href="{{ url_for('ccmd_view', code='SOUTHCOM') }}">
+      <path class="aor" fill="var(--ccmd-SOUTHCOM)" stroke="var(--ccmd-SOUTHCOM)"
+            d="M 220,260 L 310,270 L 350,290 L 355,340 L 340,395 L 315,440
+               L 285,450 L 265,435 L 255,400 L 260,360 L 255,315 L 235,285 Z">
+        <title>SOUTHCOM — {{ geo_rows | selectattr('code','equalto','SOUTHCOM') | map(attribute='count') | first }} article(s)</title>
+      </path>
+    </a>
+    <!-- EUCOM: Europe + Russia + Caucasus -->
+    <a href="{{ url_for('ccmd_view', code='EUCOM') }}">
+      <path class="aor" fill="var(--ccmd-EUCOM)" stroke="var(--ccmd-EUCOM)"
+            d="M 455,75 L 870,75 L 885,105 L 880,140 L 855,175 L 820,185
+               L 775,185 L 720,180 L 670,175 L 620,170 L 580,165 L 550,180
+               L 525,190 L 500,195 L 475,180 L 460,155 L 455,115 Z">
+        <title>EUCOM — {{ geo_rows | selectattr('code','equalto','EUCOM') | map(attribute='count') | first }} article(s)</title>
+      </path>
+    </a>
+    <!-- AFRICOM: Africa less Egypt -->
+    <a href="{{ url_for('ccmd_view', code='AFRICOM') }}">
+      <path class="aor" fill="var(--ccmd-AFRICOM)" stroke="var(--ccmd-AFRICOM)"
+            d="M 480,205 L 545,205 L 585,220 L 605,250 L 615,295 L 605,340
+               L 580,380 L 555,395 L 520,395 L 495,370 L 485,325 L 483,275
+               L 480,235 Z">
+        <title>AFRICOM — {{ geo_rows | selectattr('code','equalto','AFRICOM') | map(attribute='count') | first }} article(s)</title>
+      </path>
+    </a>
+    <!-- CENTCOM: Middle East + Central Asia + Egypt + horn-adjacent -->
+    <a href="{{ url_for('ccmd_view', code='CENTCOM') }}">
+      <path class="aor" fill="var(--ccmd-CENTCOM)" stroke="var(--ccmd-CENTCOM)"
+            d="M 560,185 L 680,185 L 730,200 L 740,230 L 730,255 L 695,275
+               L 655,275 L 620,270 L 590,255 L 570,235 L 560,210 Z">
+        <title>CENTCOM — {{ geo_rows | selectattr('code','equalto','CENTCOM') | map(attribute='count') | first }} article(s)</title>
+      </path>
+    </a>
+    <!-- INDOPACOM: India through western Pacific (two panels due to dateline) -->
+    <a href="{{ url_for('ccmd_view', code='INDOPACOM') }}">
+      <path class="aor" fill="var(--ccmd-INDOPACOM)" stroke="var(--ccmd-INDOPACOM)"
+            d="M 660,195 L 905,195 L 935,230 L 945,280 L 940,340 L 925,390
+               L 895,425 L 850,435 L 800,425 L 760,395 L 725,350 L 705,300
+               L 685,250 L 670,220 Z"/>
+      <path class="aor" fill="var(--ccmd-INDOPACOM)" stroke="var(--ccmd-INDOPACOM)"
+            d="M 945,195 L 1000,195 L 1000,435 L 945,430 Z">
+        <title>INDOPACOM — {{ geo_rows | selectattr('code','equalto','INDOPACOM') | map(attribute='count') | first }} article(s)</title>
+      </path>
+    </a>
+    <a href="{{ url_for('ccmd_view', code='INDOPACOM') }}">
+      <path class="aor" fill="var(--ccmd-INDOPACOM)" stroke="var(--ccmd-INDOPACOM)"
+            d="M 0,195 L 75,195 L 75,435 L 0,430 Z"/>
+    </a>
+
+    <!-- ================= Labels ================= -->
+    {% set label_positions = {
+      'NORTHCOM': (190, 155),
+      'SOUTHCOM': (305, 360),
+      'EUCOM':    (665, 125),
+      'AFRICOM':  (545, 310),
+      'CENTCOM':  (650, 230),
+      'INDOPACOM':(820, 300),
+    } %}
+    {% for row in geo_rows %}
+      {% set p = label_positions.get(row.code) %}
+      {% if p %}
+        <text class="aor-label" x="{{ p[0] }}" y="{{ p[1] }}" text-anchor="middle">{{ row.code }}</text>
+        <text class="aor-count" x="{{ p[0] }}" y="{{ p[1] + 16 }}" text-anchor="middle">{{ row.count }}</text>
+      {% endif %}
+    {% endfor %}
+  </svg>
+
+  <div class="map-legend">
+    {% for row in geo_rows %}
+    <a class="item" href="{{ row.href }}" title="{{ row.name }}">
+      <span class="swatch" style="background: var(--ccmd-{{ row.code }})"></span>
+      <span>{{ row.code }}</span>
+      <span class="count">{{ row.count }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<h2>Functional commands</h2>
+<p class="subtitle" style="margin: 4px 0 10px">
+  Functional commands are domain-aligned rather than geographic. They sit
+  above the map because their AOR isn't a region.
+</p>
+<div class="functional-grid">
+  {% for row in fun_rows %}
+    <a class="functional-tile" href="{{ row.href }}">
+      <span class="icon" style="background: var(--ccmd-{{ row.code }})">
+        {% if row.code == 'SPACECOM' %}◉
+        {% elif row.code == 'STRATCOM' %}☢
+        {% elif row.code == 'CYBERCOM' %}⎔
+        {% elif row.code == 'SOCOM' %}★
+        {% elif row.code == 'TRANSCOM' %}✈
+        {% else %}▣{% endif %}
+      </span>
+      <span class="meta">
+        <span class="code">{{ row.code }}</span>
+        <span class="count">{{ row.count }} article(s) · {{ row.assessed }} assessed</span>
+      </span>
+    </a>
+  {% endfor %}
+</div>
+
+<h3 style="margin-top: 20px">Caveats</h3>
+<p class="subtitle">
+  The world projection is stylised, not geodetic. AOR zones are approximate
+  outlines of the Unified Command Plan; seams (Arctic boundaries, Caucasus,
+  Egypt at the AFRICOM/CENTCOM divide) are simplified. For authoritative
+  AOR boundaries, consult the current UCP.
+</p>
+{% endblock %}

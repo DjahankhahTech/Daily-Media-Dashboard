@@ -139,6 +139,22 @@ def test_notes_tab(app_with_fixtures) -> None:
     assert "PLA responded" in r.text
 
 
+def test_map_tab_renders_world_svg(app_with_fixtures) -> None:
+    """The Map tab must render the SVG world map, all six geographic CCMD
+    zones, and link to each CCMD filter page."""
+    r = app_with_fixtures.get("/map")
+    assert r.status_code == 200
+    _assert_banner(r)
+    assert "map-svg" in r.text
+    # Geographic CCMD zone labels.
+    for code in ("NORTHCOM", "SOUTHCOM", "EUCOM", "AFRICOM", "CENTCOM", "INDOPACOM"):
+        assert code in r.text, f"missing {code} on map"
+    # Legend links into the CCMD tab.
+    assert "/ccmd/INDOPACOM" in r.text
+    # Functional tile block renders.
+    assert "functional-tile" in r.text
+
+
 def test_about_tab(app_with_fixtures) -> None:
     r = app_with_fixtures.get("/about")
     assert r.status_code == 200

@@ -26,6 +26,7 @@ def build_tabs(request: Request, session: Session) -> list[Tab]:
     fun = [c for c in ccmds if c.aor_type == AORType.FUNCTIONAL]
 
     tabs: list[Tab] = [Tab(code="HOME", label="Home", href=str(request.url_for("home")))]
+    tabs.append(Tab(code="MAP", label="Map", href=str(request.url_for("map_view"))))
     for c in geo + fun:
         tabs.append(Tab(code=c.code, label=c.code, href=str(request.url_for("ccmd_view", code=c.code))))
     tabs.append(Tab(code="UNASSIGNED", label="Unassigned", href=str(request.url_for("unassigned_view"))))

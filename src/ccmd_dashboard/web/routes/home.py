@@ -1,4 +1,4 @@
-"""Home dashboard: per-CCMD counts + unassigned diagnostic."""
+"""Home dashboard: stat tiles + per-CCMD tiles + unassigned diagnostic."""
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from ...models import (
     AnalystAction,
     AnalystNote,
+    AORType,
     Article,
     ArticleCCMD,
     CCMD,
@@ -24,7 +25,8 @@ def home(request: Request, session: Session = Depends(db_session)):
     from ..app import shared_context, templates
 
     ccmds = session.exec(select(CCMD).order_by(CCMD.aor_type, CCMD.code)).all()
-    rows: list[dict] = []
+    geo_rows: list[dict] = []
+    fun_rows: list[dict] = []
 
     total_articles = int(
         session.exec(select(func.count()).select_from(Article)).one() or 0  # type: ignore[arg-type]
@@ -34,6 +36,14 @@ def home(request: Request, session: Session = Depends(db_session)):
         session.exec(select(ArticleCCMD.article_id).distinct()).all()
     )
     unassigned_count = total_articles - len(tagged_article_ids)
+    total_flagged = int(
+        session.exec(
+            select(func.count())  # type: ignore[arg-type]
+            .select_from(AnalystNote)
+            .where(AnalystNote.action_taken == AnalystAction.FLAGGED_FOR_OIC)
+        ).one()
+        or 0
+    )
 
     for c in ccmds:
         article_ids = list(
@@ -59,7 +69,7 @@ def home(request: Request, session: Session = Depends(db_session)):
             .where(MDMAssessment.article_id.in_(article_ids))
         ).one() or 0) if article_ids else 0
 
-        rows.append({
+        row = {
             "code": c.code,
             "name": c.name,
             "href": str(request.url_for("ccmd_view", code=c.code)),
@@ -67,7 +77,11 @@ def home(request: Request, session: Session = Depends(db_session)):
             "reviewed": reviewed,
             "flagged": flagged,
             "assessed": assessed,
-        })
+        }
+        if c.aor_type == AORType.GEOGRAPHIC:
+            geo_rows.append(row)
+        else:
+            fun_rows.append(row)
 
     ctx = shared_context(request, session, active_tab="HOME")
     ctx.update({
@@ -76,6 +90,8 @@ def home(request: Request, session: Session = Depends(db_session)):
         "article_count": total_articles,
         "tagged_count": len(tagged_article_ids),
         "unassigned_count": unassigned_count,
-        "ccmd_rows": rows,
+        "total_flagged": total_flagged,
+        "geo_rows": geo_rows,
+        "fun_rows": fun_rows,
     })
     return templates.TemplateResponse(request, "pages/home.html", ctx)

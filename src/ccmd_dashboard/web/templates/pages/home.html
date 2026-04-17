@@ -4,30 +4,76 @@
 <h1>CCMD Media Intelligence Dashboard</h1>
 <p class="subtitle">
   Unclassified open-source aggregation across {{ ccmd_count }} combatant commands
-  from {{ feed_count }} feeds. {{ article_count }} articles currently ingested,
-  {{ tagged_count }} with AOR tags.
+  from {{ feed_count }} feeds. Decision-support signals, not analytic product.
 </p>
 
-<h2>Per-CCMD article volume</h2>
-<table class="plain">
-  <thead>
-    <tr><th>CCMD</th><th>Articles</th><th>Reviewed</th><th>Flagged</th><th>MDM assessed</th></tr>
-  </thead>
-  <tbody>
-    {% for row in ccmd_rows %}
-    <tr>
-      <td><a href="{{ row.href }}">{{ row.code }}</a> <span class="muted">{{ row.name }}</span></td>
-      <td>{{ row.total }}</td>
-      <td>{{ row.reviewed }}</td>
-      <td>{{ row.flagged }}</td>
-      <td>{{ row.assessed }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="stat-grid">
+  <div class="stat-tile accent">
+    <div class="label">Articles ingested</div>
+    <div class="value">{{ article_count }}</div>
+    <div class="hint">total across all feeds</div>
+  </div>
+  <div class="stat-tile ok">
+    <div class="label">AOR-tagged</div>
+    <div class="value">{{ tagged_count }}</div>
+    <div class="hint">{{ (100 * tagged_count / article_count) | round(0) | int if article_count else 0 }}% coverage</div>
+  </div>
+  <div class="stat-tile warn">
+    <div class="label">Unassigned</div>
+    <div class="value">{{ unassigned_count }}</div>
+    <div class="hint">
+      {% if unassigned_count %}<a href="{{ url_for('unassigned_view') }}">review queue →</a>
+      {% else %}none pending{% endif %}
+    </div>
+  </div>
+  <div class="stat-tile danger">
+    <div class="label">Flagged for OIC</div>
+    <div class="value">{{ total_flagged }}</div>
+    <div class="hint"><a href="{{ url_for('oic_queue') }}">OIC queue →</a></div>
+  </div>
+</div>
+
+<h2>Combatant commands</h2>
+<p class="subtitle" style="margin-bottom: 10px">
+  Click any tile to drill into that command's feed. Geographic commands shown
+  first, functional commands below.
+  <a href="{{ url_for('map_view') }}">See geographic map →</a>
+</p>
+
+<h3>Geographic</h3>
+<div class="ccmd-grid">
+  {% for row in geo_rows %}
+  <a class="ccmd-tile" href="{{ row.href }}">
+    <div class="code"><span class="dot" style="background: var(--ccmd-{{ row.code }})"></span>{{ row.code }}</div>
+    <div class="name">{{ row.name }}</div>
+    <div class="metrics">
+      <div class="metric"><div class="m-label">art</div><div class="m-value">{{ row.total }}</div></div>
+      <div class="metric"><div class="m-label">rev</div><div class="m-value">{{ row.reviewed }}</div></div>
+      <div class="metric"><div class="m-label">flag</div><div class="m-value">{{ row.flagged }}</div></div>
+      <div class="metric"><div class="m-label">mdm</div><div class="m-value">{{ row.assessed }}</div></div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<h3 style="margin-top: 16px">Functional</h3>
+<div class="ccmd-grid">
+  {% for row in fun_rows %}
+  <a class="ccmd-tile functional" href="{{ row.href }}">
+    <div class="code"><span class="dot" style="background: var(--ccmd-{{ row.code }})"></span>{{ row.code }}</div>
+    <div class="name">{{ row.name }}</div>
+    <div class="metrics">
+      <div class="metric"><div class="m-label">art</div><div class="m-value">{{ row.total }}</div></div>
+      <div class="metric"><div class="m-label">rev</div><div class="m-value">{{ row.reviewed }}</div></div>
+      <div class="metric"><div class="m-label">flag</div><div class="m-value">{{ row.flagged }}</div></div>
+      <div class="metric"><div class="m-label">mdm</div><div class="m-value">{{ row.assessed }}</div></div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
 
 {% if unassigned_count %}
-<div class="diagnostic" style="margin-top: 12px">
+<div class="diagnostic" style="margin-top: 16px">
   {{ unassigned_count }} article(s) are unassigned (no AOR match). Check the
   <a href="{{ url_for('unassigned_view') }}">Unassigned tab</a>.
 </div>

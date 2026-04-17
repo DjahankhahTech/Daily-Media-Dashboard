@@ -9,7 +9,7 @@
 <body>
   <div class="banner">{{ banner }}</div>
   <nav class="top">
-    <span class="brand">CCMD Dashboard</span>
+    <span class="brand"><span class="brand-mark">C</span> CCMD Dashboard</span>
     {% for t in tabs %}
     <a class="tab {% if t.code == active_tab %}active{% endif %}" href="{{ t.href }}">{{ t.label }}</a>
     {% endfor %}
@@ -28,7 +28,8 @@
     {% block main %}{% endblock %}
   </main>
   <div class="footer">
-    {{ banner }} · build: {{ version }} · classifier: {{ classifier_mode }}
+    <span class="mark">{{ banner }}</span><br/>
+    build <span class="mono">{{ version }}</span> · classifier <span class="mono">{{ classifier_mode }}</span>
   </div>
   <script src="{{ url_for('static', path='app.js') }}"></script>
 </body>

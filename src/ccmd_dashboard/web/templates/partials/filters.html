@@ -31,6 +31,6 @@
   <label style="flex:1; min-width: 220px">search
     <input type="text" name="q" value="{{ filters.q or '' }}" placeholder="title or body keyword" />
   </label>
-  <button type="submit">apply</button>
-  <a class="btn" href="{{ request.url.path }}"><button type="button" class="secondary">reset</button></a>
+  <button type="submit" class="btn btn-primary">apply</button>
+  <a class="btn btn-secondary" href="{{ request.url.path }}">reset</a>
 </form>
