@@ -104,7 +104,14 @@ def _compiled() -> list[_CompiledCCMD]:
 
 @lru_cache(maxsize=1)
 def _spacy_nlp():
-    import spacy  # type: ignore
+    try:
+        import spacy  # type: ignore
+    except ImportError:
+        log.warning(
+            "spaCy not installed; tagger running in keyword-only mode. "
+            "Install with `uv sync --extra classify`."
+        )
+        return None
 
     for model in (settings.spacy_model, settings.spacy_fallback_model):
         try:
