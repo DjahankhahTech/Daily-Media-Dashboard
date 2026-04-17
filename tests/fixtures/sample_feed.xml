@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test Defense Feed</title>
+    <link>https://example.test/</link>
+    <language>en</language>
+    <description>Fixture feed for ingest tests.</description>
+    <item>
+      <title>PLA Navy conducts exercises near Taiwan Strait</title>
+      <link>https://example.test/story/taiwan-strait-exercise</link>
+      <author>wire@example.test (Wire)</author>
+      <pubDate>Mon, 14 Apr 2026 10:00:00 +0000</pubDate>
+      <description>Naval exercises reported in the Taiwan Strait today.</description>
+    </item>
+    <item>
+      <title>CENTCOM announces Red Sea interdiction</title>
+      <link>https://example.test/story/red-sea-interdiction?utm_source=rss&amp;utm_medium=feed</link>
+      <pubDate>Mon, 14 Apr 2026 12:30:00 +0000</pubDate>
+      <description>U.S. Fifth Fleet announces vessel interdiction in the Red Sea.</description>
+    </item>
+    <item>
+      <title>Duplicate of first item</title>
+      <link>https://example.test/story/taiwan-strait-exercise</link>
+      <pubDate>Mon, 14 Apr 2026 11:00:00 +0000</pubDate>
+      <description>Same URL as first item; should be skipped.</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,36 @@
+<form method="get" class="filters">
+  <label>from
+    <input type="date" name="date_from" value="{{ filters.date_from or '' }}" />
+  </label>
+  <label>to
+    <input type="date" name="date_to" value="{{ filters.date_to or '' }}" />
+  </label>
+  <label>tier
+    <select name="tier">
+      <option value="">any</option>
+      <option value="1" {% if filters.tier == '1' %}selected{% endif %}>1 — USG</option>
+      <option value="2" {% if filters.tier == '2' %}selected{% endif %}>2 — trade</option>
+      <option value="3" {% if filters.tier == '3' %}selected{% endif %}>3 — wire / regional</option>
+    </select>
+  </label>
+  <label>state
+    <select name="state">
+      <option value="">any</option>
+      <option value="exclude" {% if filters.state == 'exclude' %}selected{% endif %}>exclude state-affiliated</option>
+      <option value="only" {% if filters.state == 'only' %}selected{% endif %}>state-affiliated only</option>
+    </select>
+  </label>
+  <label>MDM
+    <select name="mdm">
+      <option value="">any</option>
+      {% for cat in mdm_categories %}
+        <option value="{{ cat }}" {% if filters.mdm == cat %}selected{% endif %}>{{ cat.replace('_', ' ') }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label style="flex:1; min-width: 220px">search
+    <input type="text" name="q" value="{{ filters.q or '' }}" placeholder="title or body keyword" />
+  </label>
+  <button type="submit">apply</button>
+  <a class="btn" href="{{ request.url.path }}"><button type="button" class="secondary">reset</button></a>
+</form>

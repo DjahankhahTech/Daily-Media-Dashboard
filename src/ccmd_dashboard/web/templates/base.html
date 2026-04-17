@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}CCMD Dashboard{% endblock %} — CCMD Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}" />
+</head>
+<body>
+  <div class="banner">{{ banner }}</div>
+  <nav class="top">
+    <span class="brand">CCMD Dashboard</span>
+    {% for t in tabs %}
+    <a class="tab {% if t.code == active_tab %}active{% endif %}" href="{{ t.href }}">{{ t.label }}</a>
+    {% endfor %}
+    <span class="spacer"></span>
+    <form method="get" action="{{ url_for('set_analyst') }}" class="analyst">
+      analyst:
+      <select name="analyst_id" onchange="this.form.submit()">
+        {% for a in analysts %}
+          <option value="{{ a }}" {% if a == current_analyst %}selected{% endif %}>{{ a }}</option>
+        {% endfor %}
+      </select>
+      <input type="hidden" name="next" value="{{ request.url.path }}" />
+    </form>
+  </nav>
+  <main>
+    {% block main %}{% endblock %}
+  </main>
+  <div class="footer">
+    {{ banner }} · build: {{ version }} · classifier: {{ classifier_mode }}
+  </div>
+  <script src="{{ url_for('static', path='app.js') }}"></script>
+</body>
+</html>

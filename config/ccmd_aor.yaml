@@ -1,0 +1,612 @@
+# Combatant command areas of responsibility / interest.
+#
+# This file drives the AOR tagger. Edits should be reviewed by an
+# analyst who understands the CCMD structure — keyword lists are
+# intentionally broad in the prototype to favor recall over precision;
+# precision is tuned by the scoring function in aor_tagger.py.
+#
+# Field definitions:
+#   code                : canonical short name used in URLs and DB keys.
+#   name                : full command name for display.
+#   aor_type            : "geographic" | "functional".
+#   description         : one-line summary shown in the About tab.
+#   countries           : ISO-3166 alpha-2 codes (geographic commands only).
+#   regional_keywords   : cities, ranges, waterways, op names, bases, fleet
+#                         designators, unit designators — anything a GPE/ORG
+#                         NER model is likely to emit for this AOR.
+#   functional_domains  : domain terms unique to a functional command.
+#   adversary_keywords  : adversary/competitor force designators commonly
+#                         tied to the AOR (used as strong signal during
+#                         scoring).
+#
+# The prototype ships the four AORs below fully populated as required
+# by build step 1 (>= 3 CCMDs). The remaining seven are stubbed so the
+# DB seeds all 11 — step 3 will expand these.
+
+ccmds:
+  - code: INDOPACOM
+    name: U.S. Indo-Pacific Command
+    aor_type: geographic
+    description: >-
+      AOR covers roughly half the Earth's surface, from the U.S. west coast
+      to the western border of India, including the Indian and Pacific Oceans.
+    countries:
+      - "JP"
+      - "KR"
+      - "KP"
+      - "CN"
+      - "TW"
+      - "PH"
+      - "VN"
+      - "TH"
+      - "MY"
+      - "SG"
+      - "ID"
+      - "AU"
+      - "NZ"
+      - "IN"
+      - "LK"
+      - "BD"
+      - "MM"
+      - "MN"
+      - "FJ"
+      - "PG"
+    regional_keywords:
+      - First Island Chain
+      - Second Island Chain
+      - South China Sea
+      - East China Sea
+      - Taiwan Strait
+      - Senkaku
+      - Spratly
+      - Paracel
+      - Scarborough Shoal
+      - Yellow Sea
+      - Sea of Japan
+      - Korean Peninsula
+      - 38th Parallel
+      - Yokosuka
+      - Kadena
+      - Guam
+      - Andersen Air Force Base
+      - Camp Humphreys
+      - Osan
+      - Iwakuni
+      - 7th Fleet
+      - III MEF
+      - 8th Army
+      - USFK
+      - USFJ
+      - Pine Gap
+      - AUKUS
+      - Quad
+      - Operation Pacific Angel
+      - Talisman Sabre
+      - Balikatan
+      - RIMPAC
+      - Malabar
+    adversary_keywords:
+      - PLA
+      - PLAN
+      - PLAAF
+      - PLARF
+      - PLA Rocket Force
+      - PLA Navy
+      - PLA Air Force
+      - Theater Command
+      - Eastern Theater Command
+      - Southern Theater Command
+      - DPRK
+      - KPA
+      - Korean People's Army
+      - Kim Jong Un
+      - Hwasong
+      - Rodong
+      - Chang Wanquan
+      - DF-17
+      - DF-21
+      - DF-26
+      - Type 055
+      - Fujian
+      - Shandong
+      - Liaoning
+
+  - code: CENTCOM
+    name: U.S. Central Command
+    aor_type: geographic
+    description: >-
+      AOR covers 21 nations across the Middle East, Central Asia, and parts
+      of South Asia, including Iran, Iraq, Syria, the Arabian Peninsula,
+      Afghanistan, and the maritime chokepoints of the Strait of Hormuz and
+      Bab-el-Mandeb.
+    countries:
+      - "AF"
+      - "BH"
+      - "EG"
+      - "IR"
+      - "IQ"
+      - "JO"
+      - "KW"
+      - "LB"
+      - "OM"
+      - "PK"
+      - "QA"
+      - "SA"
+      - "SY"
+      - "TJ"
+      - "TM"
+      - "AE"
+      - "UZ"
+      - "YE"
+      - "KZ"
+      - "KG"
+    regional_keywords:
+      - Strait of Hormuz
+      - Bab-el-Mandeb
+      - Red Sea
+      - Persian Gulf
+      - Arabian Gulf
+      - Gulf of Oman
+      - Suez Canal
+      - Levant
+      - Sinai
+      - Al Udeid
+      - Al Asad
+      - Al Dhafra
+      - Ain al-Asad
+      - Prince Sultan Air Base
+      - Manama
+      - NAVCENT
+      - 5th Fleet
+      - CTF 150
+      - CTF 151
+      - CTF 152
+      - Combined Maritime Forces
+      - Operation Inherent Resolve
+      - Operation Prosperity Guarantee
+      - Operation Poseidon Archer
+    adversary_keywords:
+      - IRGC
+      - Islamic Revolutionary Guard Corps
+      - Quds Force
+      - Houthi
+      - Ansar Allah
+      - Kata'ib Hezbollah
+      - Hezbollah
+      - Hamas
+      - Islamic Jihad
+      - ISIS
+      - ISIL
+      - Daesh
+      - Taliban
+      - Haqqani
+      - Al-Qaeda
+      - AQAP
+
+  - code: EUCOM
+    name: U.S. European Command
+    aor_type: geographic
+    description: >-
+      AOR covers 51 countries across Europe, Russia, parts of the Middle
+      East and the Arctic, including all of NATO's European members.
+    countries:
+      - "GB"
+      - "FR"
+      - "DE"
+      - "IT"
+      - "ES"
+      - "PL"
+      - "NL"
+      - "BE"
+      - "NO"
+      - "SE"
+      - "FI"
+      - "DK"
+      - "IS"
+      - "IE"
+      - "PT"
+      - "CZ"
+      - "SK"
+      - "HU"
+      - "AT"
+      - "CH"
+      - "RO"
+      - "BG"
+      - "GR"
+      - "HR"
+      - "SI"
+      - "EE"
+      - "LV"
+      - "LT"
+      - "UA"
+      - "RU"
+      - "BY"
+      - "MD"
+      - "GE"
+      - "AM"
+      - "AZ"
+      - "RS"
+      - "ME"
+      - "MK"
+      - "AL"
+      - "BA"
+      - "XK"
+      - "CY"
+      - "MT"
+    regional_keywords:
+      - NATO
+      - Article 5
+      - Article V
+      - Baltic States
+      - Baltic Sea
+      - Kaliningrad
+      - Suwalki Gap
+      - Black Sea
+      - Crimea
+      - Donbas
+      - Donetsk
+      - Luhansk
+      - Kherson
+      - Zaporizhzhia
+      - Kyiv
+      - Ramstein
+      - Aviano
+      - Rota
+      - Lakenheath
+      - Mildenhall
+      - Stuttgart
+      - Wiesbaden
+      - EUCOM
+      - SHAPE
+      - NAVEUR
+      - 6th Fleet
+      - V Corps
+      - High North
+      - GIUK Gap
+      - Arctic Council
+      - Nord Stream
+    adversary_keywords:
+      - VKS
+      - Russian Aerospace Forces
+      - VDV
+      - GRU
+      - FSB
+      - SVR
+      - Rosgvardiya
+      - Wagner
+      - Africa Corps
+      - Redut
+      - Iskander
+      - Kinzhal
+      - Kalibr
+      - Zircon
+      - Northern Fleet
+      - Black Sea Fleet
+      - Baltic Fleet
+
+  - code: AFRICOM
+    name: U.S. Africa Command
+    aor_type: geographic
+    description: >-
+      AOR covers the African continent (less Egypt, which is CENTCOM),
+      adjacent waters, and Cabo Verde.
+    countries:
+      - "DZ"
+      - "AO"
+      - "BJ"
+      - "BW"
+      - "BF"
+      - "BI"
+      - "CM"
+      - "CV"
+      - "CF"
+      - "TD"
+      - "KM"
+      - "CD"
+      - "CG"
+      - "CI"
+      - "DJ"
+      - "GQ"
+      - "ER"
+      - "SZ"
+      - "ET"
+      - "GA"
+      - "GM"
+      - "GH"
+      - "GN"
+      - "GW"
+      - "KE"
+      - "LS"
+      - "LR"
+      - "LY"
+      - "MG"
+      - "MW"
+      - "ML"
+      - "MR"
+      - "MU"
+      - "MA"
+      - "MZ"
+      - "NA"
+      - "NE"
+      - "NG"
+      - "RW"
+      - "ST"
+      - "SN"
+      - "SC"
+      - "SL"
+      - "SO"
+      - "ZA"
+      - "SS"
+      - "SD"
+      - "TZ"
+      - "TG"
+      - "TN"
+      - "UG"
+      - "ZM"
+      - "ZW"
+    regional_keywords:
+      - Sahel
+      - Horn of Africa
+      - Gulf of Guinea
+      - Lake Chad Basin
+      - Maghreb
+      - Great Lakes region
+      - Camp Lemonnier
+      - Djibouti
+      - Chabelley
+      - Mogadishu
+      - Niamey
+      - AGADEZ
+      - Agadez
+      - Air Base 201
+      - CJTF-HOA
+      - Combined Joint Task Force Horn of Africa
+      - Operation Juniper Shield
+      - Flintlock
+    adversary_keywords:
+      - Al-Shabaab
+      - Boko Haram
+      - ISWAP
+      - Islamic State West Africa Province
+      - ISCAP
+      - JNIM
+      - Jama'at Nusrat al-Islam
+      - AQIM
+      - Al-Qaeda in the Islamic Maghreb
+      - Wagner
+      - Africa Corps
+      - RSF
+      - Rapid Support Forces
+
+  - code: NORTHCOM
+    name: U.S. Northern Command
+    aor_type: geographic
+    description: >-
+      Homeland defense AOR covering the United States, Canada, Mexico, the
+      Bahamas, and surrounding waters (to approximately 500nm).
+    countries: ["US", "CA", "MX", "BS"]
+    regional_keywords:
+      - NORAD
+      - homeland defense
+      - Arctic approaches
+      - Gulf of Mexico
+      - DSCA
+      - Operation Noble Eagle
+    adversary_keywords: []
+
+  - code: SOUTHCOM
+    name: U.S. Southern Command
+    aor_type: geographic
+    description: >-
+      AOR covers Central and South America, the Caribbean (less the
+      Bahamas), and surrounding waters.
+    countries:
+      - "AR"
+      - "BZ"
+      - "BO"
+      - "BR"
+      - "CL"
+      - "CO"
+      - "CR"
+      - "CU"
+      - "DO"
+      - "EC"
+      - "SV"
+      - "GT"
+      - "GY"
+      - "HT"
+      - "HN"
+      - "JM"
+      - "NI"
+      - "PA"
+      - "PY"
+      - "PE"
+      - "SR"
+      - "TT"
+      - "UY"
+      - "VE"
+    regional_keywords:
+      - Darien Gap
+      - Tri-Border Area
+      - Andean Ridge
+      - Caribbean Basin
+      - Guantanamo
+      - Soto Cano
+      - Comalapa
+      - Joint Interagency Task Force South
+      - JIATF-S
+    adversary_keywords:
+      - FARC
+      - ELN
+      - Clan del Golfo
+      - Tren de Aragua
+      - CJNG
+      - Sinaloa Cartel
+
+  - code: SPACECOM
+    name: U.S. Space Command
+    aor_type: functional
+    description: >-
+      Functional command responsible for military operations in, from, and
+      to the space domain starting 100km above mean sea level.
+    functional_domains:
+      - LEO
+      - low Earth orbit
+      - MEO
+      - GEO
+      - geostationary
+      - cislunar
+      - xGEO
+      - rendezvous and proximity operations
+      - RPO
+      - on-orbit servicing
+      - space domain awareness
+      - SDA
+      - GSSAP
+      - SBIRS
+      - counterspace
+      - anti-satellite
+      - ASAT
+      - direct-ascent ASAT
+      - co-orbital
+      - kinetic kill vehicle
+      - electromagnetic interference
+      - GPS jamming
+      - GPS spoofing
+      - launch vehicle
+      - Falcon 9
+      - Starship
+      - Vulcan Centaur
+      - Long March
+      - Soyuz
+    adversary_keywords:
+      - PLA Aerospace Force
+      - Russian Space Forces
+      - Yaogan
+      - Shijian
+      - Cosmos
+      - Olymp-K
+      - Luch
+      - Nivelir
+      - Burevestnik
+
+  - code: STRATCOM
+    name: U.S. Strategic Command
+    aor_type: functional
+    description: >-
+      Functional command for strategic deterrence, nuclear operations, and
+      global strike.
+    functional_domains:
+      - nuclear triad
+      - ICBM
+      - SLBM
+      - Minuteman III
+      - Sentinel
+      - Trident II
+      - D5
+      - Columbia class
+      - Ohio class
+      - B-52
+      - B-2
+      - B-21
+      - Raider
+      - LRSO
+      - long-range standoff
+      - strategic deterrence
+      - extended deterrence
+      - New START
+      - NC3
+      - nuclear command control and communications
+    adversary_keywords:
+      - RS-28
+      - Sarmat
+      - Avangard
+      - DF-41
+      - Yars
+      - Bulava
+      - Borei
+      - Borei-A
+      - Type 094
+      - Type 096
+      - Hwasong-17
+      - Hwasong-18
+
+  - code: CYBERCOM
+    name: U.S. Cyber Command
+    aor_type: functional
+    description: >-
+      Functional command for cyberspace operations, defense of the DoDIN,
+      and support to combatant commands in the cyber domain.
+    functional_domains:
+      - DoDIN
+      - hunt forward
+      - JFHQ-DoDIN
+      - CMF
+      - Cyber Mission Force
+      - CNMF
+      - persistent engagement
+      - defend forward
+      - JCWA
+      - cyber command and control
+    adversary_keywords:
+      - APT28
+      - Fancy Bear
+      - APT29
+      - Cozy Bear
+      - Sandworm
+      - APT40
+      - APT41
+      - Volt Typhoon
+      - Salt Typhoon
+      - Flax Typhoon
+      - Lazarus Group
+      - Kimsuky
+      - Charming Kitten
+      - MuddyWater
+
+  - code: SOCOM
+    name: U.S. Special Operations Command
+    aor_type: functional
+    description: >-
+      Functional command that organizes, trains, and equips special
+      operations forces across the services.
+    functional_domains:
+      - JSOC
+      - SEAL
+      - Delta Force
+      - 75th Ranger Regiment
+      - 160th SOAR
+      - MARSOC
+      - AFSOC
+      - Green Beret
+      - Special Forces
+      - direct action
+      - counterterrorism
+      - unconventional warfare
+      - foreign internal defense
+    adversary_keywords: []
+
+  - code: TRANSCOM
+    name: U.S. Transportation Command
+    aor_type: functional
+    description: >-
+      Functional command for global mobility of DoD forces via air, land,
+      and sea.
+    functional_domains:
+      - AMC
+      - Air Mobility Command
+      - MSC
+      - Military Sealift Command
+      - SDDC
+      - Surface Deployment and Distribution Command
+      - Civil Reserve Air Fleet
+      - CRAF
+      - Voluntary Intermodal Sealift Agreement
+      - VISA
+      - Ready Reserve Force
+      - C-17
+      - C-5M
+      - KC-46
+      - KC-135
+      - LMSR
+    adversary_keywords: []

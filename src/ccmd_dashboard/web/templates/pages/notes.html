@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Analyst Notes{% endblock %}
+{% block main %}
+<h1>Analyst Notes</h1>
+<p class="subtitle">
+  All notes across articles, most recent first. Notes follow an ATP-2
+  style: observation, significance, recommended action.
+</p>
+
+<div class="detail-actions" style="margin-bottom: 10px">
+  <a class="btn" href="{{ url_for('export_brief_pdf') }}"><button>Export today's brief (PDF)</button></a>
+  <a class="btn" href="{{ url_for('export_brief_csv') }}"><button class="secondary">Export today's brief (CSV)</button></a>
+  <a class="btn" href="{{ url_for('oic_queue') }}"><button class="secondary">OIC flag queue</button></a>
+</div>
+
+<div class="card-list">
+  {% for n in notes %}
+    <div class="card">
+      <div class="head">
+        <a class="title" href="{{ url_for('article_detail', article_id=n.article.id) }}">{{ n.article.title }}</a>
+      </div>
+      <div class="meta">
+        {{ n.note.analyst_id }} · {{ n.note.created_at.strftime('%Y-%m-%d %H:%M') }} ·
+        <span class="badge mdm-{{ 'high_concern' if n.note.action_taken.value == 'flagged_for_oic' else 'likely_reliable' }}">
+          {{ n.note.action_taken.value.replace('_', ' ') }}
+        </span>
+      </div>
+      <dl class="kv">
+        {% if n.note.observation %}<dt>observation</dt><dd>{{ n.note.observation }}</dd>{% endif %}
+        {% if n.note.significance %}<dt>significance</dt><dd>{{ n.note.significance }}</dd>{% endif %}
+        {% if n.note.recommended_action %}<dt>recommended action</dt><dd>{{ n.note.recommended_action }}</dd>{% endif %}
+        {% if n.note.note %}<dt>note</dt><dd>{{ n.note.note }}</dd>{% endif %}
+      </dl>
+    </div>
+  {% endfor %}
+  {% if not notes %}
+    <div class="diagnostic">No analyst notes yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

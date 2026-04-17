@@ -1,0 +1,215 @@
+"""Typer CLI. Step-1 skeleton: only ``init-db`` and ``info`` wired up; the
+remaining commands are stubbed so ``--help`` shows the intended workflow."""
+
+from __future__ import annotations
+
+import typer
+from rich import print as rprint
+from sqlmodel import select
+
+from . import __version__
+from .ccmd_loader import load_ccmd_definitions
+from .config import settings
+from .db import create_all, session_scope
+from .feed_loader import load_feed_definitions
+from .models import CCMD, Feed
+
+app = typer.Typer(
+    name="dashboard",
+    help="CCMD Media Intelligence Dashboard — OSW prototype.",
+    no_args_is_help=True,
+)
+
+
+@app.command("info")
+def info() -> None:
+    """Print resolved settings so the operator can sanity-check the environment."""
+    rprint(f"[bold]ccmd-dashboard[/bold] v{__version__}")
+    rprint(f"  classifier      : {settings.classifier}")
+    rprint(f"  database_url    : {settings.database_url}")
+    rprint(f"  config_dir      : {settings.config_dir}")
+    rprint(f"  data_dir        : {settings.data_dir}")
+
+
+@app.command("init-db")
+def init_db(
+    seed: bool = typer.Option(
+        True, "--seed/--no-seed", help="Seed CCMDs and feeds from yaml configs."
+    ),
+) -> None:
+    """Create database tables and optionally seed CCMDs + feeds from the
+    yaml configs. For the prototype this doubles as the migration entry
+    point; Alembic is wired up for the production port path."""
+    create_all()
+    rprint("[green]created tables[/green]")
+    if not seed:
+        return
+
+    ccmds = load_ccmd_definitions()
+    feeds = load_feed_definitions()
+    with session_scope() as session:
+        existing_ccmds = {c.code for c in session.exec(select(CCMD)).all()}
+        for c in ccmds:
+            if c.code in existing_ccmds:
+                continue
+            session.add(
+                CCMD(
+                    code=c.code,
+                    name=c.name,
+                    aor_type=c.aor_type,
+                    description=c.description,
+                )
+            )
+        existing_feeds = {f.url for f in session.exec(select(Feed)).all()}
+        for f in feeds:
+            if f.todo or f.url in existing_feeds:
+                continue
+            session.add(
+                Feed(
+                    name=f.name,
+                    url=f.url,
+                    source_tier=f.source_tier,
+                    state_affiliation=f.state_affiliation,
+                    language=f.language,
+                    notes=f.notes,
+                )
+            )
+    rprint(f"[green]seeded[/green] {len(ccmds)} CCMDs, "
+           f"{sum(1 for f in feeds if not f.todo)} feeds "
+           f"({sum(1 for f in feeds if f.todo)} TODO entries skipped)")
+
+
+@app.command("ingest")
+def ingest(
+    feed: str | None = typer.Option(None, "--feed", help="Feed name."),
+    since: str | None = typer.Option(None, "--since", help="ISO date (YYYY-MM-DD)."),
+    no_extract: bool = typer.Option(
+        False, "--no-extract",
+        help="Skip trafilatura full-text extraction (feed summary only).",
+    ),
+) -> None:
+    """Pull articles from one or all configured feeds."""
+    from datetime import datetime as _dt
+
+    from .db import session_scope
+    from .ingest.pipeline import ingest_all
+
+    since_dt = _dt.fromisoformat(since) if since else None
+    with session_scope() as session:
+        results = ingest_all(
+            session,
+            feed_name=feed,
+            since=since_dt,
+            extract_full=not no_extract,
+        )
+
+    if not results:
+        rprint("[yellow]no feeds ingested[/yellow]")
+        raise typer.Exit(code=1)
+
+    total_new = 0
+    for stats in results:
+        rprint(stats.as_line())
+        total_new += stats.new
+        for err in stats.errors:
+            rprint(f"  [red]error[/red] {err}")
+    rprint(f"[green]{total_new} new article(s)[/green]")
+
+
+@app.command("tag")
+def tag(
+    article_id: int | None = typer.Option(None, "--article-id"),
+    recompute: bool = typer.Option(False, "--recompute"),
+) -> None:
+    """Run the AOR tagger over one or all articles."""
+    from .classify.aor_runner import tag_all_untagged, tag_one
+    from .db import session_scope
+
+    with session_scope() as session:
+        if article_id is not None:
+            rows = tag_one(session, article_id, recompute=recompute)
+            if rows is None:
+                rprint(f"[red]article {article_id} not found[/red]")
+                raise typer.Exit(code=1)
+            rprint(f"article {article_id}: {len(rows)} tag(s)")
+            for r in rows:
+                rprint(f"  {r.ccmd_code:<10} score={r.match_score:.4f} "
+                       f"terms={r.matched_terms[:5]}")
+        else:
+            processed, written = tag_all_untagged(session, recompute=recompute)
+            rprint(f"[green]tagged {processed} article(s), wrote {written} row(s)[/green]")
+
+
+@app.command("eval-aor")
+def eval_aor() -> None:
+    """Run the AOR tagger against the hand-labeled eval set and print P/R/F1."""
+    from pathlib import Path as _P
+    from .classify.eval_harness import evaluate, load_eval_set
+
+    eval_path = _P(__file__).resolve().parents[2] / "tests" / "aor_eval.jsonl"
+    if not eval_path.exists():
+        rprint(f"[red]eval set missing: {eval_path}[/red]")
+        raise typer.Exit(code=1)
+    report = evaluate(load_eval_set(eval_path))
+    rprint(report.as_table())
+
+
+@app.command("serve")
+def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False) -> None:
+    """Launch the FastAPI + HTMX web UI."""
+    import uvicorn
+
+    uvicorn.run(
+        "ccmd_dashboard.web.app:create_app",
+        host=host,
+        port=port,
+        factory=True,
+        reload=reload,
+    )
+
+
+@app.command("demo")
+def demo(
+    load_only: bool = typer.Option(
+        False, "--load-only",
+        help="Build the demo DB but don't start the web server.",
+    ),
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8000, "--port"),
+    no_mdm: bool = typer.Option(
+        False, "--no-mdm",
+        help="Skip MDM assessment during demo load (faster; demo UI shows "
+             "articles + AOR tags only).",
+    ),
+) -> None:
+    """Load the canned demo dataset and start the UI in offline mode.
+
+    Wipes the current database and rebuilds it from
+    src/ccmd_dashboard/demo_data.jsonl (50 articles across the 11 CCMDs
+    plus a handful of negatives), runs the AOR tagger, then assesses
+    every article with the stub Classifier. Runs fully offline — no
+    network, no API key required.
+    """
+    from .demo import build_demo_dataset
+
+    rprint("[bold]building demo dataset (offline, stub classifier)[/bold]")
+    stats = build_demo_dataset(run_mdm=not no_mdm)
+    rprint(
+        f"  articles loaded : {stats['articles']}\n"
+        f"  tagged AOR      : {stats['tagged']} ({stats['tags_written']} rows)\n"
+        f"  MDM assessed    : {stats['assessed']}"
+    )
+    if load_only:
+        rprint("[green]demo DB ready; --load-only set, not starting server[/green]")
+        return
+    rprint(f"[green]starting demo UI at http://{host}:{port}/[/green]")
+    import uvicorn
+
+    uvicorn.run(
+        "ccmd_dashboard.web.app:create_app",
+        host=host, port=port, factory=True,
+    )
+
+
+if __name__ == "__main__":  # pragma: no cover
+    app()
