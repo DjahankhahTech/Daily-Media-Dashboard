@@ -9,7 +9,7 @@
 # Serves the demo dataset out of the box. Flip CCMD_DEMO=0 and
 # CCMD_CLASSIFIER=anthropic once the volume has real ingested data.
 
-app = "ccmd-dashboard"
+app = "adjahankhah"
 primary_region = "ord"
 
 [build]
