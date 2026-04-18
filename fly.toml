@@ -1,0 +1,38 @@
+# Fly.io deploy config — prototype / demo tier.
+#
+# First-time setup:
+#   fly launch --no-deploy --copy-config          # accepts this file; picks an app name
+#   fly volumes create ccmd_data --size 1 --region ord
+#   fly secrets set CCMD_ANTHROPIC_API_KEY=sk-...  # only if switching to anthropic
+#   fly deploy
+#
+# Serves the demo dataset out of the box. Flip CCMD_DEMO=0 and
+# CCMD_CLASSIFIER=anthropic once the volume has real ingested data.
+
+app = "ccmd-dashboard"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  CCMD_DATA_DIR = "/data"
+  CCMD_RAW_FEED_DIR = "/data/raw_feeds"
+  CCMD_DATABASE_URL = "sqlite:////data/dashboard.db"
+  CCMD_CLASSIFIER = "stub"
+  CCMD_DEMO = "1"
+
+[[mounts]]
+  source = "ccmd_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
