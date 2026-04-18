@@ -16,8 +16,11 @@ mkdir -p "$DATA_DIR" "$DATA_DIR/raw_feeds"
 
 if [ ! -f "$DB_FILE" ]; then
   if [ "${CCMD_DEMO:-0}" = "1" ]; then
-    echo "[entrypoint] no DB at $DB_FILE — bootstrapping demo dataset"
-    dashboard demo --load-only
+    echo "[entrypoint] no DB at $DB_FILE — bootstrapping demo dataset (no MDM)"
+    # --no-mdm keeps first boot fast: MDM runs sentence-transformers on CPU
+    # which OOMs a 1 GB VM when batched over 50 articles. The analyst
+    # triggers MDM per-article from the UI at runtime instead.
+    dashboard demo --load-only --no-mdm
   else
     echo "[entrypoint] no DB at $DB_FILE — initializing empty schema"
     dashboard init-db
