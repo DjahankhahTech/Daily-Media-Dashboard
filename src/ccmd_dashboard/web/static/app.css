@@ -120,3 +120,40 @@ table.plain th { background: #f1f5f9; color: #475569; font-weight: 600; font-siz
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
 
 .footer { padding: 16px; color: var(--muted); font-size: 12px; text-align: center; }
+
+/* Geographic map tab */
+.map-wrap { background: #fff; border: 1px solid var(--card-border); border-radius: 6px; padding: 12px; }
+.map-svg { width: 100%; height: auto; display: block; }
+.map-ocean { fill: #eff6ff; }
+.map-region { stroke: #334155; stroke-width: 1; cursor: pointer; transition: stroke-width 120ms; }
+.map-region.heat-0 { fill: #e2e8f0; }
+.map-region.heat-1 { fill: #dbeafe; }
+.map-region.heat-2 { fill: #93c5fd; }
+.map-region.heat-3 { fill: #3b82f6; }
+.map-region.heat-4 { fill: #1e3a8a; }
+.map-region:hover { stroke: #0f172a; stroke-width: 2.5; }
+.map-label, .map-count {
+  text-anchor: middle; pointer-events: none; font-family: system-ui, sans-serif;
+  paint-order: stroke; stroke: #ffffff; stroke-width: 3px; stroke-linejoin: round;
+}
+.map-label { fill: #0f172a; font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
+.map-count { fill: #1e293b; font-size: 14px; font-weight: 600; }
+
+.map-legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend-swatch { display: inline-block; width: 18px; height: 12px; border-radius: 2px; border: 1px solid #334155; margin-left: 4px; }
+.legend-swatch.heat-0 { background: #e2e8f0; }
+.legend-swatch.heat-1 { background: #dbeafe; }
+.legend-swatch.heat-2 { background: #93c5fd; }
+.legend-swatch.heat-3 { background: #3b82f6; }
+.legend-swatch.heat-4 { background: #1e3a8a; }
+.legend-lbl { margin-right: 8px; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
+  background: #f1f5f9; border: 1px solid var(--card-border); border-radius: 999px;
+  font-size: 13px; color: #0f172a;
+}
+.chip:hover { background: #e2e8f0; text-decoration: none; }
+.chip-code { font-weight: 600; }
+.chip-count { color: var(--muted); font-size: 12px; }

@@ -43,11 +43,13 @@ def create_app() -> FastAPI:
     )
 
     from .routes import (
-        about, analyst, articles, ccmd, export, home, mdm, notes, unassigned,
+        about, analyst, articles, ccmd, export, geographic, home, mdm, notes,
+        unassigned,
     )
 
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     app.include_router(home.router)
+    app.include_router(geographic.router)
     app.include_router(ccmd.router)
     app.include_router(unassigned.router)
     app.include_router(mdm.router)

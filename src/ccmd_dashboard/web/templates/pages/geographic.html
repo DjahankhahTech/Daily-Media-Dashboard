@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Geographic{% endblock %}
+{% block main %}
+<h1>Geographic layout</h1>
+<p class="subtitle">
+  Schematic world view across the six geographic combatant commands. Heat
+  color tracks article volume relative to the busiest AOR
+  ({{ max_geo_count }} article{{ '' if max_geo_count == 1 else 's' }}).
+  Click a region to open its tab. {{ total_articles }} articles total.
+</p>
+
+<div class="map-wrap">
+  <svg class="map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"
+       role="img" aria-label="CCMD geographic layout">
+    <rect x="0" y="0" width="1000" height="500" class="map-ocean" />
+    {% for r in regions %}
+    <a href="{{ r.href }}" aria-label="{{ r.code }} — {{ r.total }} articles">
+      <rect class="map-region heat-{{ r.heat }}"
+            x="{{ r.x }}" y="{{ r.y }}" width="{{ r.w }}" height="{{ r.h }}"
+            rx="6" ry="6">
+        <title>{{ r.code }} — {{ r.name }} — {{ r.total }} article(s)</title>
+      </rect>
+      <text class="map-label" x="{{ r.cx }}" y="{{ r.cy - 6 }}">{{ r.code }}</text>
+      <text class="map-count" x="{{ r.cx }}" y="{{ r.cy + 14 }}">{{ r.total }}</text>
+    </a>
+    {% endfor %}
+  </svg>
+
+  <div class="map-legend">
+    <span class="muted">volume:</span>
+    <span class="legend-swatch heat-0"></span><span class="legend-lbl">0</span>
+    <span class="legend-swatch heat-1"></span><span class="legend-lbl">low</span>
+    <span class="legend-swatch heat-2"></span><span class="legend-lbl">mid</span>
+    <span class="legend-swatch heat-3"></span><span class="legend-lbl">high</span>
+    <span class="legend-swatch heat-4"></span><span class="legend-lbl">peak</span>
+  </div>
+</div>
+
+<h2>Functional commands</h2>
+<p class="subtitle">
+  Not shown on the map — these commands have no geographic AOR.
+</p>
+<div class="chip-row">
+  {% for f in functional %}
+  <a class="chip" href="{{ f.href }}">
+    <span class="chip-code">{{ f.code }}</span>
+    <span class="chip-count">{{ f.total }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}
