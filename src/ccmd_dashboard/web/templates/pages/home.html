@@ -1,12 +1,58 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block main %}
-<h1>CCMD Media Intelligence Dashboard</h1>
-<p class="subtitle">
-  Unclassified open-source aggregation across {{ ccmd_count }} combatant commands
-  from {{ feed_count }} feeds. {{ article_count }} articles currently ingested,
-  {{ tagged_count }} with AOR tags.
-</p>
+<div class="hero-head">
+  <div>
+    <h1>CCMD Media Intelligence Dashboard</h1>
+    <p class="subtitle">
+      Unclassified open-source aggregation across {{ ccmd_count }} combatant
+      commands from {{ feed_count }} feeds. {{ article_count }} articles ingested,
+      {{ tagged_count }} tagged.
+    </p>
+  </div>
+  <div class="refresh-chip" title="Time since last successful feed ingestion.">
+    <span class="refresh-dot"></span>
+    last refresh: <strong>{{ last_refresh_label }}</strong>
+  </div>
+</div>
+
+<div class="map-wrap">
+  <svg class="map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"
+       role="img" aria-label="CCMD geographic overlay">
+    <rect x="0" y="0" width="1000" height="500" class="map-ocean" />
+    {% include "partials/world_basemap.html" %}
+    <g class="map-regions">
+      {% for r in regions %}
+      <a href="{{ r.href }}" aria-label="{{ r.code }} — {{ r.total }} articles">
+        <rect class="map-region heat-{{ r.heat }}"
+              x="{{ r.x }}" y="{{ r.y }}" width="{{ r.w }}" height="{{ r.h }}"
+              rx="4" ry="4">
+          <title>{{ r.code }} — {{ r.name }} — {{ r.total }} article(s)</title>
+        </rect>
+        <text class="map-label" x="{{ r.cx }}" y="{{ r.cy - 4 }}">{{ r.code }}</text>
+        <text class="map-count" x="{{ r.cx }}" y="{{ r.cy + 14 }}">{{ r.total }}</text>
+      </a>
+      {% endfor %}
+    </g>
+  </svg>
+
+  <div class="map-legend">
+    <span class="muted">volume:</span>
+    <span class="legend-swatch heat-0"></span><span class="legend-lbl">0</span>
+    <span class="legend-swatch heat-1"></span><span class="legend-lbl">low</span>
+    <span class="legend-swatch heat-2"></span><span class="legend-lbl">mid</span>
+    <span class="legend-swatch heat-3"></span><span class="legend-lbl">high</span>
+    <span class="legend-swatch heat-4"></span><span class="legend-lbl">peak</span>
+    <span class="spacer"></span>
+    <span class="muted">functional:</span>
+    {% for f in functional %}
+    <a class="chip compact" href="{{ f.href }}">
+      <span class="chip-code">{{ f.code }}</span>
+      <span class="chip-count">{{ f.total }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
 
 <h2>Per-CCMD article volume</h2>
 <table class="plain">

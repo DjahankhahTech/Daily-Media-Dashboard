@@ -1,0 +1,93 @@
+{# Simplified world basemap — rough continent polygons on a 1000x500 viewBox.
+   Equirectangular-ish (longitude -180..180 → x 0..1000; latitude 90..-90 → y 0..500).
+   Hand-tuned for a schematic overlay, not cartographic accuracy. No external
+   assets: pure inline SVG paths, air-gap safe.
+#}
+<g class="map-continents" aria-hidden="true">
+  {# Graticule: equator + prime meridian + a couple of longitudes, for a paper-map feel. #}
+  <line class="map-grid" x1="0"   y1="250" x2="1000" y2="250" />
+  <line class="map-grid" x1="500" y1="0"   x2="500"  y2="500" />
+  <line class="map-grid map-grid-minor" x1="250" y1="0" x2="250" y2="500" />
+  <line class="map-grid map-grid-minor" x1="750" y1="0" x2="750" y2="500" />
+  <line class="map-grid map-grid-minor" x1="0" y1="125" x2="1000" y2="125" />
+  <line class="map-grid map-grid-minor" x1="0" y1="375" x2="1000" y2="375" />
+
+  {# North America #}
+  <path class="map-land" d="
+    M 95,105 L 170,90 L 240,95 L 295,115 L 320,150 L 300,185
+    L 280,215 L 255,240 L 225,260 L 200,270 L 180,260 L 165,240
+    L 150,215 L 135,195 L 115,170 L 100,140 Z" />
+
+  {# Central America + Caribbean arc #}
+  <path class="map-land" d="
+    M 200,270 L 230,285 L 255,298 L 260,312 L 240,310 L 215,298 L 200,285 Z" />
+
+  {# South America #}
+  <path class="map-land" d="
+    M 245,305 L 290,300 L 325,320 L 340,360 L 335,410 L 310,445
+    L 285,465 L 275,460 L 270,430 L 258,395 L 248,355 Z" />
+
+  {# Greenland #}
+  <path class="map-land" d="
+    M 350,55 L 400,45 L 420,65 L 410,95 L 380,105 L 355,90 Z" />
+
+  {# Europe #}
+  <path class="map-land" d="
+    M 465,120 L 495,110 L 530,105 L 565,115 L 595,125 L 620,140
+    L 610,160 L 585,170 L 555,175 L 525,175 L 500,168 L 475,155 Z" />
+
+  {# British Isles #}
+  <path class="map-land" d="
+    M 450,125 L 465,120 L 465,145 L 455,155 L 445,145 Z" />
+
+  {# Scandinavia #}
+  <path class="map-land" d="
+    M 515,85 L 545,80 L 560,100 L 550,115 L 525,115 L 515,100 Z" />
+
+  {# Russia / Siberia (long strip across top of Asia) #}
+  <path class="map-land" d="
+    M 565,95 L 640,85 L 720,90 L 810,100 L 880,115 L 910,135
+    L 890,150 L 840,155 L 780,150 L 720,145 L 670,140 L 615,130
+    L 580,120 Z" />
+
+  {# Middle East / Arabian Peninsula #}
+  <path class="map-land" d="
+    M 580,180 L 615,175 L 640,190 L 650,215 L 635,240 L 610,250
+    L 585,240 L 575,215 Z" />
+
+  {# Central / South Asia (India, Indochina) #}
+  <path class="map-land" d="
+    M 650,180 L 700,180 L 740,195 L 750,225 L 735,260 L 710,280
+    L 685,270 L 668,240 L 655,210 Z" />
+
+  {# East Asia (China, Korea) #}
+  <path class="map-land" d="
+    M 750,160 L 810,155 L 855,170 L 870,200 L 855,225 L 820,235
+    L 785,225 L 760,200 Z" />
+
+  {# Japan #}
+  <path class="map-land" d="
+    M 880,175 L 900,170 L 905,195 L 895,215 L 882,205 Z" />
+
+  {# Southeast Asia archipelago #}
+  <path class="map-land" d="
+    M 795,260 L 830,255 L 855,270 L 860,290 L 835,295 L 810,288 Z" />
+  <path class="map-land" d="M 775,285 L 800,280 L 810,298 L 790,305 L 775,300 Z" />
+
+  {# Africa #}
+  <path class="map-land" d="
+    M 485,210 L 530,195 L 570,205 L 595,230 L 605,275 L 600,320
+    L 580,365 L 555,400 L 525,420 L 500,415 L 485,385 L 480,340
+    L 478,295 L 478,250 Z" />
+
+  {# Madagascar #}
+  <path class="map-land" d="M 618,355 L 630,350 L 635,380 L 625,395 L 618,385 Z" />
+
+  {# Australia #}
+  <path class="map-land" d="
+    M 830,360 L 885,350 L 920,365 L 930,390 L 910,410 L 870,415
+    L 840,405 L 825,385 Z" />
+
+  {# New Zealand #}
+  <path class="map-land" d="M 945,410 L 955,405 L 960,425 L 950,435 L 942,425 Z" />
+</g>

@@ -21,6 +21,10 @@ primary_region = "ord"
   CCMD_DATABASE_URL = "sqlite:////data/dashboard.db"
   CCMD_CLASSIFIER = "stub"
   CCMD_DEMO = "1"
+  # Background scheduler: pull every active feed every 60 min, then tag.
+  # Requires min_machines_running >= 1 (below) so we don't scale to zero.
+  CCMD_INGEST_ENABLED = "1"
+  CCMD_INGEST_INTERVAL_MINUTES = "60"
 
 [[mounts]]
   source = "ccmd_data"
@@ -29,9 +33,10 @@ primary_region = "ord"
 [http_service]
   internal_port = 8080
   force_https = true
+  # Keep one machine warm so the background ingest scheduler actually ticks.
   auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
 
 [[vm]]
   size = "shared-cpu-1x"

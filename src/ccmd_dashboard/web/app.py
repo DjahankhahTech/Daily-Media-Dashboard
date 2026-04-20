@@ -1,5 +1,6 @@
 """FastAPI app factory + shared context for the dashboard."""
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -11,6 +12,7 @@ from ..config import settings
 from ..constants import BANNER_TEXT, MDM_CATEGORY_BANDS
 from .deps import ANALYSTS
 from .nav import build_tabs
+from .scheduler import shutdown_scheduler, start_scheduler
 
 _HERE = Path(__file__).resolve().parent
 TEMPLATE_DIR = _HERE / "templates"
@@ -36,20 +38,28 @@ def shared_context(request: Request, session, active_tab: str = "HOME") -> dict:
     }
 
 
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    start_scheduler()
+    try:
+        yield
+    finally:
+        shutdown_scheduler()
+
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title="CCMD Media Intelligence Dashboard",
         version=__version__,
+        lifespan=_lifespan,
     )
 
     from .routes import (
-        about, analyst, articles, ccmd, export, geographic, home, mdm, notes,
-        unassigned,
+        about, analyst, articles, ccmd, export, home, mdm, notes, unassigned,
     )
 
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     app.include_router(home.router)
-    app.include_router(geographic.router)
     app.include_router(ccmd.router)
     app.include_router(unassigned.router)
     app.include_router(mdm.router)
