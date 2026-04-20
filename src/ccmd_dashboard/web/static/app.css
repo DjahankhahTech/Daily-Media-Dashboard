@@ -92,6 +92,7 @@ p.subtitle { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
 .badge.tier-3 { background: var(--badge-t3-bg); color: var(--badge-t3-fg); }
 .badge.state  { background: var(--badge-state-bg); color: var(--badge-state-fg); }
 .badge.ccmd   { background: #ede9fe; color: #5b21b6; }
+.badge.ccmd.bg { background: #fef3c7; color: #78350f; border: 1px dashed #d97706; }
 .badge.mdm-likely_reliable      { background: var(--badge-mdm-lr-bg); color: var(--badge-mdm-lr-fg); }
 .badge.mdm-requires_verification{ background: var(--badge-mdm-rv-bg); color: var(--badge-mdm-rv-fg); }
 .badge.mdm-significant_concerns { background: var(--badge-mdm-sc-bg); color: var(--badge-mdm-sc-fg); }
@@ -121,38 +122,38 @@ table.plain th { background: #f1f5f9; color: #475569; font-weight: 600; font-siz
 
 .footer { padding: 16px; color: var(--muted); font-size: 12px; text-align: center; }
 
-/* Geographic map tab */
-.map-wrap { background: #fff; border: 1px solid var(--card-border); border-radius: 6px; padding: 12px; }
-.map-svg { width: 100%; height: auto; display: block; }
-.map-ocean { fill: #dbeafe; }
-.map-continents .map-land {
-  fill: #f5e6c8; stroke: #b08b5a; stroke-width: 0.8; stroke-linejoin: round;
+/* Home page — Leaflet satellite map with AOR overlays */
+.map-wrap { background: #0f172a; border: 1px solid var(--card-border); border-radius: 6px; padding: 8px; }
+.leaflet-map { width: 100%; height: 520px; border-radius: 4px; background: #0f172a; }
+.aor-rect { cursor: pointer; transition: fill-opacity 120ms; }
+.aor-rect:hover { fill-opacity: 0.55 !important; }
+.aor-tooltip {
+  background: rgba(15, 23, 42, 0.92) !important; color: #f1f5f9 !important;
+  border: 0 !important; padding: 2px 6px !important; font-size: 12px !important;
+  font-weight: 600; letter-spacing: 0.02em; box-shadow: none !important;
 }
-.map-grid { stroke: #9ca3af; stroke-width: 0.5; stroke-dasharray: 2 4; opacity: 0.5; }
-.map-grid-minor { stroke-dasharray: 1 5; opacity: 0.25; }
-.map-region { stroke: #0f172a; stroke-width: 1.4; cursor: pointer; fill-opacity: 0.55; transition: fill-opacity 120ms, stroke-width 120ms; }
-.map-region.heat-0 { fill: #94a3b8; fill-opacity: 0.20; }
-.map-region.heat-1 { fill: #3b82f6; fill-opacity: 0.30; }
-.map-region.heat-2 { fill: #2563eb; fill-opacity: 0.45; }
-.map-region.heat-3 { fill: #1d4ed8; fill-opacity: 0.60; }
-.map-region.heat-4 { fill: #1e3a8a; fill-opacity: 0.80; }
-.map-region:hover { fill-opacity: 0.9; stroke-width: 2.5; }
-.map-label, .map-count {
-  text-anchor: middle; pointer-events: none; font-family: system-ui, sans-serif;
-  paint-order: stroke; stroke: #ffffff; stroke-width: 3px; stroke-linejoin: round;
-}
-.map-label { fill: #0f172a; font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
-.map-count { fill: #1e293b; font-size: 14px; font-weight: 600; }
+.aor-popup { font-size: 13px; color: #0f172a; }
+.aor-popup .aor-popup-title { font-size: 14px; margin-bottom: 4px; }
+.aor-popup-tbl { width: 100%; margin: 6px 0; font-size: 12px; border-collapse: collapse; }
+.aor-popup-tbl td { padding: 1px 4px; border-bottom: 1px solid #e2e8f0; }
+.aor-popup-tbl td:first-child { text-transform: capitalize; color: #334155; }
+.aor-popup-link { display: inline-block; margin-top: 4px; font-weight: 600; }
 
-.map-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.map-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--muted); padding: 0 4px; }
 .map-legend .spacer { flex: 1; min-width: 16px; }
 .legend-swatch { display: inline-block; width: 18px; height: 12px; border-radius: 2px; border: 1px solid #334155; margin-left: 4px; }
-.legend-swatch.heat-0 { background: #cbd5e1; }
-.legend-swatch.heat-1 { background: #bfdbfe; }
-.legend-swatch.heat-2 { background: #60a5fa; }
-.legend-swatch.heat-3 { background: #2563eb; }
-.legend-swatch.heat-4 { background: #1e3a8a; }
+.legend-swatch.cat-likely_reliable       { background: #22c55e; }
+.legend-swatch.cat-requires_verification { background: #eab308; }
+.legend-swatch.cat-significant_concerns  { background: #f97316; }
+.legend-swatch.cat-high_concern          { background: #dc2626; }
+.legend-swatch.cat-none                  { background: #38bdf8; }
 .legend-lbl { margin-right: 8px; }
+
+/* Dominant-category tint on functional chips (bar matches the map legend). */
+.chip.cat-likely_reliable       { box-shadow: inset 3px 0 0 #22c55e; }
+.chip.cat-requires_verification { box-shadow: inset 3px 0 0 #eab308; }
+.chip.cat-significant_concerns  { box-shadow: inset 3px 0 0 #f97316; }
+.chip.cat-high_concern          { box-shadow: inset 3px 0 0 #dc2626; }
 
 .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .chip {

@@ -41,24 +41,41 @@ operations and IW planning.
 
 ## 3. Home page — the map
 
-The landing page is a schematic world layout showing the six geographic
-CCMDs overlaid on their continents. Each rectangle is heat-colored by
-article volume (0 / low / mid / high / peak), scaled to whichever AOR
-currently has the most articles.
+The landing page is a Leaflet satellite map (Esri World Imagery) with
+the six geographic CCMD AORs drawn as semi-transparent rectangles over
+their regions. **Color encodes dominant MDM concern** across the AOR's
+assessed articles, not raw volume:
 
-- **Click any rectangle** → opens that CCMD's article list.
-- **Hover** → brightens the overlay and shows a tooltip with the full
-  command name + article count.
+| Color | Meaning |
+|---|---|
+| green | dominant category is `likely_reliable` |
+| amber | `requires_verification` |
+| orange | `significant_concerns` |
+| red | `high_concern` |
+| cyan | no MDM assessments yet |
+
+- **Pan / zoom** the map with the mouse wheel, trackpad, or the
+  `+ / -` controls top-left.
+- **Click any rectangle** → popup with article count, mean concern
+  score, category breakdown, best-guess count, and a link to the CCMD
+  tab.
+- **Hover** shows a quick tooltip with the CCMD code and article count.
 - **Functional commands** (SPACECOM, STRATCOM, CYBERCOM, SOCOM,
-  TRANSCOM) sit as chips in the legend row beneath the map — they have
-  no geography.
-- **"last refresh: X min ago"** pill top-right of the map hero tracks
-  the most recent completed feed ingestion. Pulsing green dot = the
+  TRANSCOM) sit as chips in the legend row beneath the map; the left
+  stripe encodes their own dominant MDM category.
+- **"last refresh: X min ago"** pill top-right of the hero tracks the
+  most recent completed feed ingestion. Pulsing green dot = the
   background scheduler is alive.
-- **Per-CCMD volume table** below the map has articles / reviewed /
-  flagged / MDM-assessed counts for every CCMD.
+- **Per-CCMD snapshot table** below the map has articles / best-guess
+  / reviewed / flagged / MDM-assessed / mean-score / dominant-category
+  columns for every CCMD.
 - **Unassigned diagnostic bar** appears at the bottom when articles
-  didn't match any AOR — those sit in the Unassigned tab.
+  couldn't be routed at all — see §6 for the best-guess semantics.
+
+> **Network caveat.** The satellite tiles are served by Esri's public
+> ArcGIS Online endpoint. The Fly demo relies on outbound HTTPS for
+> this; an air-gap / .mil port would need a local tile cache or must
+> fall back to the pre-computed schematic view.
 
 ## 4. CCMD tabs — working the articles
 
@@ -152,10 +169,14 @@ your mind — the audit trail matters more than the neatness.
 
 ## 6. Other tabs
 
-- **Unassigned** — articles ingested but matched to no AOR. Diagnostic:
-  if this is large, either the feed is off-topic or the AOR keyword
-  lists need expanding (edit `config/ccmd_aor.yaml` and rerun `dashboard
-  tag --recompute`).
+- **Unassigned** — articles that the keyword tagger missed AND the
+  best-guess source-based tagger couldn't rescue. Diagnostic: if this
+  is large, either the feed is off-topic, the AOR keyword lists need
+  expanding (`config/ccmd_aor.yaml` → rerun `dashboard tag --recompute`),
+  or the feed needs a state-affiliation mapping in the best-guess
+  table (`src/ccmd_dashboard/classify/best_guess.py` → `STATE_TO_CCMD`).
+  Articles tagged via best-guess carry a dashed **BG** badge on their
+  card so they're visually distinct from keyword-matched tags.
 - **MDM Queue** — every article that's been assessed. Sortable by score.
 - **Analyst Notes** — every note across every article, newest first.
 - **OIC Queue** — just the notes with `action_taken = flagged_for_oic`.

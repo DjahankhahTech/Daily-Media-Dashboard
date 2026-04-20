@@ -1,5 +1,6 @@
-"""Home dashboard: world map overlay + per-CCMD volume table + last-refresh."""
+"""Home dashboard: Leaflet satellite map with MDM-colored AOR overlays."""
 
+from collections import Counter
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request
@@ -17,36 +18,24 @@ from ...models import (
     Feed,
     IngestRun,
     MDMAssessment,
+    MDMCategory,
 )
 from ..deps import db_session
 
 router = APIRouter()
 
-
-# Approximate AOR footprints on a 1000x500 viewBox. Tuned to overlay the
-# simplified continent polygons in partials/world_basemap.html — rectangles
-# sit roughly over the landmasses each CCMD is responsible for.
-CCMD_MAP_LAYOUT: dict[str, dict[str, int]] = {
-    "NORTHCOM":  {"x":  95, "y":  85, "w": 220, "h": 190},
-    "SOUTHCOM":  {"x": 235, "y": 290, "w": 110, "h": 185},
-    "EUCOM":     {"x": 445, "y":  80, "w": 180, "h": 110},
-    "AFRICOM":   {"x": 470, "y": 195, "w": 155, "h": 230},
-    "CENTCOM":   {"x": 575, "y": 170, "w": 180, "h": 100},
-    "INDOPACOM": {"x": 745, "y": 145, "w": 225, "h": 290},
+# AOR bounds in (sw_lat, sw_lon), (ne_lat, ne_lon) — approximate rectangles
+# over each geographic CCMD's footprint. Good enough for a Leaflet overlay;
+# the underlying AORs are irregular polygons but rectangles read cleanly
+# at world zoom.
+CCMD_BOUNDS: dict[str, list[list[float]]] = {
+    "NORTHCOM":  [[14.0, -168.0], [72.0,  -52.0]],
+    "SOUTHCOM":  [[-56.0, -92.0], [30.0,  -34.0]],
+    "EUCOM":     [[35.0,  -10.0], [72.0,  180.0]],  # incl. Russia
+    "AFRICOM":   [[-36.0, -20.0], [37.0,   52.0]],
+    "CENTCOM":   [[10.0,   25.0], [50.0,   78.0]],
+    "INDOPACOM": [[-50.0,  60.0], [55.0,  180.0]],
 }
-
-
-def _heat_band(count: int, max_count: int) -> int:
-    if count <= 0 or max_count <= 0:
-        return 0
-    ratio = count / max_count
-    if ratio <= 0.25:
-        return 1
-    if ratio <= 0.50:
-        return 2
-    if ratio <= 0.75:
-        return 3
-    return 4
 
 
 def _humanize_age(delta_seconds: float) -> str:
@@ -66,37 +55,72 @@ def home(request: Request, session: Session = Depends(db_session)):
 
     ccmds = session.exec(select(CCMD).order_by(CCMD.aor_type, CCMD.code)).all()
 
-    # Aggregate counts we need for both the map heat and the stats table.
     counts: dict[str, int] = {}
+    best_guess_counts: dict[str, int] = {}
     reviewed_counts: dict[str, int] = {}
     flagged_counts: dict[str, int] = {}
     assessed_counts: dict[str, int] = {}
+    mean_scores: dict[str, float | None] = {}
+    dominant_cat: dict[str, str | None] = {}
+    category_counts: dict[str, dict[str, int]] = {}
+
     for c in ccmds:
-        ids = list(session.exec(
-            select(ArticleCCMD.article_id).where(ArticleCCMD.ccmd_code == c.code)
+        tag_rows = list(session.exec(
+            select(ArticleCCMD).where(ArticleCCMD.ccmd_code == c.code)
         ).all())
-        counts[c.code] = len(set(ids))
-        if ids:
+        article_ids = list({r.article_id for r in tag_rows})
+        counts[c.code] = len(article_ids)
+        best_guess_counts[c.code] = sum(
+            1 for r in tag_rows if r.tagged_by.startswith("best_guess")
+        )
+
+        if article_ids:
             reviewed_counts[c.code] = int(session.exec(
                 select(func.count())  # type: ignore[arg-type]
                 .select_from(AnalystNote)
-                .where(AnalystNote.article_id.in_(ids))
+                .where(AnalystNote.article_id.in_(article_ids))
                 .where(AnalystNote.action_taken == AnalystAction.REVIEWED)
             ).one() or 0)
             flagged_counts[c.code] = int(session.exec(
                 select(func.count())  # type: ignore[arg-type]
                 .select_from(AnalystNote)
-                .where(AnalystNote.article_id.in_(ids))
+                .where(AnalystNote.article_id.in_(article_ids))
                 .where(AnalystNote.action_taken == AnalystAction.FLAGGED_FOR_OIC)
-            ).one() or 0)
-            assessed_counts[c.code] = int(session.exec(
-                select(func.count(func.distinct(MDMAssessment.article_id)))  # type: ignore[arg-type]
-                .where(MDMAssessment.article_id.in_(ids))
             ).one() or 0)
         else:
             reviewed_counts[c.code] = 0
             flagged_counts[c.code] = 0
-            assessed_counts[c.code] = 0
+
+        # MDM aggregates — use the latest assessment per article.
+        assessments = []
+        if article_ids:
+            assessments = list(session.exec(
+                select(MDMAssessment).where(MDMAssessment.article_id.in_(article_ids))
+            ).all())
+        # Keep only the latest row per article (mdm_runner appends on re-assess).
+        latest_by_article: dict[int, MDMAssessment] = {}
+        for a in assessments:
+            prev = latest_by_article.get(a.article_id)
+            if prev is None or (a.assessed_at and prev.assessed_at and a.assessed_at > prev.assessed_at):
+                latest_by_article[a.article_id] = a
+        latest = list(latest_by_article.values())
+
+        assessed_counts[c.code] = len(latest)
+        cat_counter: Counter[str] = Counter()
+        scored = [a.concern_score for a in latest if a.concern_score is not None]
+        for a in latest:
+            cat_counter[a.category.value] += 1
+        category_counts[c.code] = dict(cat_counter)
+        mean_scores[c.code] = (sum(scored) / len(scored)) if scored else None
+        # Most common real category (ignore insufficient_data if we have real ones).
+        real_cats = {k: v for k, v in cat_counter.items()
+                     if k != MDMCategory.INSUFFICIENT_DATA.value}
+        if real_cats:
+            dominant_cat[c.code] = max(real_cats, key=lambda k: real_cats[k])
+        elif cat_counter:
+            dominant_cat[c.code] = MDMCategory.INSUFFICIENT_DATA.value
+        else:
+            dominant_cat[c.code] = None
 
     total_articles = int(
         session.exec(select(func.count()).select_from(Article)).one() or 0  # type: ignore[arg-type]
@@ -109,7 +133,7 @@ def home(request: Request, session: Session = Depends(db_session)):
     )
     unassigned_count = total_articles - len(tagged_article_ids)
 
-    # Last successful ingest — drives the "last refreshed" chip on the map.
+    # Last successful ingest — drives the "last refreshed" chip.
     last_run = session.exec(
         select(IngestRun)
         .where(IngestRun.finished_at.is_not(None))  # type: ignore[union-attr]
@@ -126,24 +150,23 @@ def home(request: Request, session: Session = Depends(db_session)):
 
     geo_ccmds = [c for c in ccmds if c.aor_type == AORType.GEOGRAPHIC]
     fun_ccmds = [c for c in ccmds if c.aor_type == AORType.FUNCTIONAL]
-    max_geo_count = max((counts[c.code] for c in geo_ccmds), default=0)
 
     regions = []
     for c in geo_ccmds:
-        layout = CCMD_MAP_LAYOUT.get(c.code)
-        if layout is None:
+        bounds = CCMD_BOUNDS.get(c.code)
+        if bounds is None:
             continue
-        total = counts[c.code]
         regions.append({
             "code": c.code,
             "name": c.name,
-            "total": total,
-            "heat": _heat_band(total, max_geo_count),
             "href": str(request.url_for("ccmd_view", code=c.code)),
-            "x": layout["x"], "y": layout["y"],
-            "w": layout["w"], "h": layout["h"],
-            "cx": layout["x"] + layout["w"] // 2,
-            "cy": layout["y"] + layout["h"] // 2,
+            "bounds": bounds,
+            "articles_total": counts[c.code],
+            "articles_best_guess": best_guess_counts[c.code],
+            "assessed_count": assessed_counts[c.code],
+            "mean_score": round(mean_scores[c.code], 1) if mean_scores[c.code] is not None else None,
+            "dominant_category": dominant_cat[c.code],
+            "category_counts": category_counts[c.code],
         })
 
     functional = [
@@ -151,6 +174,8 @@ def home(request: Request, session: Session = Depends(db_session)):
             "code": c.code,
             "name": c.name,
             "total": counts[c.code],
+            "dominant_category": dominant_cat[c.code],
+            "assessed_count": assessed_counts[c.code],
             "href": str(request.url_for("ccmd_view", code=c.code)),
         }
         for c in fun_ccmds
@@ -162,9 +187,13 @@ def home(request: Request, session: Session = Depends(db_session)):
             "name": c.name,
             "href": str(request.url_for("ccmd_view", code=c.code)),
             "total": counts[c.code],
+            "best_guess": best_guess_counts[c.code],
             "reviewed": reviewed_counts[c.code],
             "flagged": flagged_counts[c.code],
             "assessed": assessed_counts[c.code],
+            "mean_score": (round(mean_scores[c.code], 1)
+                           if mean_scores[c.code] is not None else None),
+            "dominant_category": dominant_cat[c.code],
         }
         for c in ccmds
     ]
@@ -179,7 +208,6 @@ def home(request: Request, session: Session = Depends(db_session)):
         "ccmd_rows": rows,
         "regions": regions,
         "functional": functional,
-        "max_geo_count": max_geo_count,
         "last_refresh_label": last_refresh_label,
     })
     return templates.TemplateResponse(request, "pages/home.html", ctx)

@@ -45,7 +45,11 @@ def tag_and_store(
 
 def tag_all_untagged(session: Session, *, recompute: bool = False) -> tuple[int, int]:
     """Tag every article that has no ArticleCCMD rows yet (or every article
-    if ``recompute``). Returns (articles_processed, tags_written)."""
+    if ``recompute``). Returns (articles_processed, tags_written).
+
+    Runs the best-guess (source-based) pass afterward: articles that
+    still have no match get a low-confidence BG row if their feed has
+    a state affiliation or is tier-1 USG."""
     q = select(Article)
     articles = list(session.exec(q).all())
     processed = 0
@@ -61,6 +65,10 @@ def tag_all_untagged(session: Session, *, recompute: bool = False) -> tuple[int,
         processed += 1
         written += len(rows)
         session.commit()
+
+    from .best_guess import best_guess_untagged
+    _, bg_written = best_guess_untagged(session)
+    written += bg_written
     return processed, written
 
 
