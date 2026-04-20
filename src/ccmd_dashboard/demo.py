@@ -170,11 +170,6 @@ def build_demo_dataset(run_mdm: bool = True) -> dict:
                 stats["tagged"] += 1
                 stats["tags_written"] += len(rows)
 
-        # Source-based best-guess for anything the keyword tagger missed.
-        from .classify.best_guess import best_guess_untagged
-        _, bg_written = best_guess_untagged(s)
-        stats["tags_written"] += bg_written
-
         if run_mdm:
             for aid in article_ids:
                 try:

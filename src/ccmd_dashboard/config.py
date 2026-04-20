@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     ingest_interval_minutes: int = 60
     ingest_extract_full: bool = False
     ingest_tag_after: bool = True
+    mdm_auto_enabled: bool = True
+    mdm_batch_per_tick: int = 20
 
     # Corroboration
     corroboration_similarity_threshold: float = 0.70

@@ -39,12 +39,24 @@ operations and IW planning.
    every page and every exported PDF. If it's ever missing, something's
    wrong — tell someone.
 
-## 3. Home page — the map
+## 3. Home page — the map + daily briefing
 
-The landing page is a Leaflet satellite map (Esri World Imagery) with
-the six geographic CCMD AORs drawn as semi-transparent rectangles over
-their regions. **Color encodes dominant MDM concern** across the AOR's
-assessed articles, not raw volume:
+The landing page has three sections:
+
+1. **Hero narrative** — "N article(s) in the last 24 h across 11
+   commands. Most active: EUCOM (27)." Tells a watch-floor lead what
+   happened since they last logged in, in one sentence.
+2. **Satellite map** with permanent narrative labels on each AOR.
+3. **Daily briefing grid** with a tile per CCMD: window counts, themes,
+   mean MDM concern, click-through to the CCMD tab.
+
+The Leaflet satellite map (Esri World Imagery) draws the six geographic
+CCMD AORs as semi-transparent rectangles. Each rectangle carries a
+**permanent label** with the CCMD code, the 24-hour narrative
+("12 article(s) in the last 24 h — themes: Red Sea, Hormuz; mean MDM
+37.5 (requires verification)"), and the top headline. **Color encodes
+dominant MDM concern** across the AOR's assessed articles, not raw
+volume:
 
 | Color | Meaning |
 |---|---|
@@ -115,9 +127,15 @@ Click any article title to open the detail page.
 from the source. Click the **source link ↗** to verify in the original
 publication. Always verify before escalating.
 
-### 5a. MDM assessment (what "Assess" does)
+### 5a. MDM assessment (runs automatically)
 
-Clicking **Assess (MDM)** runs two stages:
+**MDM assessment is automatic.** Every new article picked up by the
+background ingest scheduler is assessed on the next tick — you don't
+click anything. The **Re-assess (MDM)** button on the detail page is
+only useful if you've edited the scorer weights and want the row
+recomputed against the current version.
+
+When it runs, it's two stages:
 
 1. **Stage 1 — LLM extraction.** The classifier (stub or Anthropic,
    depending on deployment) reads the article and pulls out structured
@@ -133,10 +151,9 @@ Clicking **Assess (MDM)** runs two stages:
    the detail page shows every sub-signal's name, value, weight,
    contribution, and a one-sentence explanation. Nothing is hidden.
 
-First click can take ~10-20 seconds while the embedder loads. The
-button flips to "Assessing…" while the request is in flight. Re-clicking
-"Assess (MDM)" creates a new assessment row (audit trail preserved) and
-the UI shows the latest.
+Re-assessment creates a new MDMAssessment row (audit trail preserved)
+and the UI shows the latest. A small diagnostic appears inside the card
+if extraction or scoring failed.
 
 Category bands:
 
@@ -169,14 +186,12 @@ your mind — the audit trail matters more than the neatness.
 
 ## 6. Other tabs
 
-- **Unassigned** — articles that the keyword tagger missed AND the
-  best-guess source-based tagger couldn't rescue. Diagnostic: if this
-  is large, either the feed is off-topic, the AOR keyword lists need
-  expanding (`config/ccmd_aor.yaml` → rerun `dashboard tag --recompute`),
-  or the feed needs a state-affiliation mapping in the best-guess
-  table (`src/ccmd_dashboard/classify/best_guess.py` → `STATE_TO_CCMD`).
-  Articles tagged via best-guess carry a dashed **BG** badge on their
-  card so they're visually distinct from keyword-matched tags.
+- **Unassigned** — every article is assigned to a CCMD by the tagger's
+  cascade (keyword match → top below-threshold match → state-affiliation
+  mapping → NORTHCOM as catch-all), so this tab is usually empty. It
+  only surfaces articles mid-pipeline (ingested but not yet tagged).
+  If something is stuck here across multiple scheduler ticks, check
+  `fly logs -a <app>` for tagger errors.
 - **MDM Queue** — every article that's been assessed. Sortable by score.
 - **Analyst Notes** — every note across every article, newest first.
 - **OIC Queue** — just the notes with `action_taken = flagged_for_oic`.

@@ -42,8 +42,9 @@ def app_with_fixtures(tmp_path_factory):
         feed_usg = Feed(name="DoD News", url="https://example.test/dod", source_tier=1)
         feed_state = Feed(name="TASS", url="https://example.test/tass",
                           source_tier=3, state_affiliation="RU")
-        # Neutral tier-3 feed used to produce an article that will not be
-        # rescued by the best-guess tagger (no state affiliation, not USG).
+        # Neutral tier-3 feed used for an article whose fixture deliberately
+        # inserts no ArticleCCMD row, so the Unassigned tab has something
+        # to render.
         feed_neutral = Feed(name="Local Weather", url="https://example.test/wx",
                             source_tier=3)
         s.add_all([feed_usg, feed_state, feed_neutral])

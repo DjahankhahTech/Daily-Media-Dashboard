@@ -13,13 +13,7 @@
       <span class="badge state" title="state-affiliated media">state: {{ a.feed.state_affiliation }}</span>
     {% endif %}
     {% for tag in a.tags %}
-      {% if tag.tagged_by and tag.tagged_by.startswith('best_guess') %}
-        <span class="badge ccmd bg" title="Best-guess AOR from source — no keyword match">
-          {{ tag.ccmd_code }} · BG
-        </span>
-      {% else %}
-        <span class="badge ccmd">{{ tag.ccmd_code }}{% if tag.match_score %} · {{ '%.2f' % tag.match_score }}{% endif %}</span>
-      {% endif %}
+      <span class="badge ccmd">{{ tag.ccmd_code }}{% if tag.match_score %} · {{ '%.2f' % tag.match_score }}{% endif %}</span>
     {% endfor %}
     {% if a.latest_mdm %}
       <span class="badge mdm-{{ a.latest_mdm.category.value }}">

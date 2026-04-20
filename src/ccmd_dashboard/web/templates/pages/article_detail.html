@@ -68,11 +68,13 @@
 
 <div class="detail-actions">
   <form method="post" action="{{ url_for('assess_article', article_id=article.id) }}" class="js-busy-form">
-    <button type="submit" data-busy-label="Assessing…">Assess (MDM)</button>
-    <span class="muted" style="margin-left: 8px; font-size: 12px">first click may take ~10-20s while the embedder loads</span>
+    <button type="submit" class="secondary" data-busy-label="Re-assessing…">Re-assess (MDM)</button>
+    <span class="muted" style="margin-left: 8px; font-size: 12px">
+      {% if latest_mdm %}MDM runs automatically; re-assess only if you've edited scorer weights{% else %}MDM runs automatically on the next scheduler tick{% endif %}
+    </span>
   </form>
   <form method="post" action="{{ url_for('add_note_form', article_id=article.id) }}" style="display:inline">
-    <button type="submit" class="secondary">Add note</button>
+    <button type="submit">Add note</button>
   </form>
 </div>
 

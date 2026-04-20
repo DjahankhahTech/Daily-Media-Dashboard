@@ -1,6 +1,5 @@
-"""Home dashboard: Leaflet satellite map with MDM-colored AOR overlays."""
+"""Home dashboard: satellite map with narrative overlay + daily briefing."""
 
-from collections import Counter
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request
@@ -17,25 +16,25 @@ from ...models import (
     CCMD,
     Feed,
     IngestRun,
-    MDMAssessment,
-    MDMCategory,
 )
+from ..daily_summary import build_brief_for
 from ..deps import db_session
 
 router = APIRouter()
 
 # AOR bounds in (sw_lat, sw_lon), (ne_lat, ne_lon) — approximate rectangles
-# over each geographic CCMD's footprint. Good enough for a Leaflet overlay;
-# the underlying AORs are irregular polygons but rectangles read cleanly
-# at world zoom.
+# over each geographic CCMD's footprint. Irregular polygons in reality;
+# rectangles read cleanly at world zoom.
 CCMD_BOUNDS: dict[str, list[list[float]]] = {
     "NORTHCOM":  [[14.0, -168.0], [72.0,  -52.0]],
     "SOUTHCOM":  [[-56.0, -92.0], [30.0,  -34.0]],
-    "EUCOM":     [[35.0,  -10.0], [72.0,  180.0]],  # incl. Russia
+    "EUCOM":     [[35.0,  -10.0], [72.0,  180.0]],
     "AFRICOM":   [[-36.0, -20.0], [37.0,   52.0]],
     "CENTCOM":   [[10.0,   25.0], [50.0,   78.0]],
     "INDOPACOM": [[-50.0,  60.0], [55.0,  180.0]],
 }
+
+WINDOW_HOURS = 24
 
 
 def _humanize_age(delta_seconds: float) -> str:
@@ -54,73 +53,8 @@ def home(request: Request, session: Session = Depends(db_session)):
     from ..app import shared_context, templates
 
     ccmds = session.exec(select(CCMD).order_by(CCMD.aor_type, CCMD.code)).all()
-
-    counts: dict[str, int] = {}
-    best_guess_counts: dict[str, int] = {}
-    reviewed_counts: dict[str, int] = {}
-    flagged_counts: dict[str, int] = {}
-    assessed_counts: dict[str, int] = {}
-    mean_scores: dict[str, float | None] = {}
-    dominant_cat: dict[str, str | None] = {}
-    category_counts: dict[str, dict[str, int]] = {}
-
-    for c in ccmds:
-        tag_rows = list(session.exec(
-            select(ArticleCCMD).where(ArticleCCMD.ccmd_code == c.code)
-        ).all())
-        article_ids = list({r.article_id for r in tag_rows})
-        counts[c.code] = len(article_ids)
-        best_guess_counts[c.code] = sum(
-            1 for r in tag_rows if r.tagged_by.startswith("best_guess")
-        )
-
-        if article_ids:
-            reviewed_counts[c.code] = int(session.exec(
-                select(func.count())  # type: ignore[arg-type]
-                .select_from(AnalystNote)
-                .where(AnalystNote.article_id.in_(article_ids))
-                .where(AnalystNote.action_taken == AnalystAction.REVIEWED)
-            ).one() or 0)
-            flagged_counts[c.code] = int(session.exec(
-                select(func.count())  # type: ignore[arg-type]
-                .select_from(AnalystNote)
-                .where(AnalystNote.article_id.in_(article_ids))
-                .where(AnalystNote.action_taken == AnalystAction.FLAGGED_FOR_OIC)
-            ).one() or 0)
-        else:
-            reviewed_counts[c.code] = 0
-            flagged_counts[c.code] = 0
-
-        # MDM aggregates — use the latest assessment per article.
-        assessments = []
-        if article_ids:
-            assessments = list(session.exec(
-                select(MDMAssessment).where(MDMAssessment.article_id.in_(article_ids))
-            ).all())
-        # Keep only the latest row per article (mdm_runner appends on re-assess).
-        latest_by_article: dict[int, MDMAssessment] = {}
-        for a in assessments:
-            prev = latest_by_article.get(a.article_id)
-            if prev is None or (a.assessed_at and prev.assessed_at and a.assessed_at > prev.assessed_at):
-                latest_by_article[a.article_id] = a
-        latest = list(latest_by_article.values())
-
-        assessed_counts[c.code] = len(latest)
-        cat_counter: Counter[str] = Counter()
-        scored = [a.concern_score for a in latest if a.concern_score is not None]
-        for a in latest:
-            cat_counter[a.category.value] += 1
-        category_counts[c.code] = dict(cat_counter)
-        mean_scores[c.code] = (sum(scored) / len(scored)) if scored else None
-        # Most common real category (ignore insufficient_data if we have real ones).
-        real_cats = {k: v for k, v in cat_counter.items()
-                     if k != MDMCategory.INSUFFICIENT_DATA.value}
-        if real_cats:
-            dominant_cat[c.code] = max(real_cats, key=lambda k: real_cats[k])
-        elif cat_counter:
-            dominant_cat[c.code] = MDMCategory.INSUFFICIENT_DATA.value
-        else:
-            dominant_cat[c.code] = None
+    briefs = {c.code: build_brief_for(session, c.code, window_hours=WINDOW_HOURS)
+              for c in ccmds}
 
     total_articles = int(
         session.exec(select(func.count()).select_from(Article)).one() or 0  # type: ignore[arg-type]
@@ -133,7 +67,6 @@ def home(request: Request, session: Session = Depends(db_session)):
     )
     unassigned_count = total_articles - len(tagged_article_ids)
 
-    # Last successful ingest — drives the "last refreshed" chip.
     last_run = session.exec(
         select(IngestRun)
         .where(IngestRun.finished_at.is_not(None))  # type: ignore[union-attr]
@@ -151,52 +84,90 @@ def home(request: Request, session: Session = Depends(db_session)):
     geo_ccmds = [c for c in ccmds if c.aor_type == AORType.GEOGRAPHIC]
     fun_ccmds = [c for c in ccmds if c.aor_type == AORType.FUNCTIONAL]
 
+    def _note_count(article_ids: list[int], action: AnalystAction) -> int:
+        if not article_ids:
+            return 0
+        return int(session.exec(
+            select(func.count())  # type: ignore[arg-type]
+            .select_from(AnalystNote)
+            .where(AnalystNote.article_id.in_(article_ids))
+            .where(AnalystNote.action_taken == action)
+        ).one() or 0)
+
+    def _ids_for(code: str) -> list[int]:
+        return list({r.article_id for r in session.exec(
+            select(ArticleCCMD).where(ArticleCCMD.ccmd_code == code)
+        ).all()})
+
     regions = []
     for c in geo_ccmds:
         bounds = CCMD_BOUNDS.get(c.code)
         if bounds is None:
             continue
+        b = briefs[c.code]
+        top_line = b.headlines[0].title if b.headlines else None
         regions.append({
             "code": c.code,
             "name": c.name,
             "href": str(request.url_for("ccmd_view", code=c.code)),
             "bounds": bounds,
-            "articles_total": counts[c.code],
-            "articles_best_guess": best_guess_counts[c.code],
-            "assessed_count": assessed_counts[c.code],
-            "mean_score": round(mean_scores[c.code], 1) if mean_scores[c.code] is not None else None,
-            "dominant_category": dominant_cat[c.code],
-            "category_counts": category_counts[c.code],
+            "articles_total": b.total_count,
+            "articles_window": b.window_count,
+            "assessed_count": b.assessed_count,
+            "mean_score": b.mean_score,
+            "dominant_category": b.dominant_category,
+            "narrative": b.narrative,
+            "top_headline": top_line,
+            "themes": b.themes,
+            "headlines": [
+                {"title": h.title, "feed_name": h.feed_name,
+                 "mdm_category": h.mdm_category, "mdm_score": h.mdm_score,
+                 "href": str(request.url_for("article_detail", article_id=h.article_id))}
+                for h in b.headlines
+            ],
         })
 
     functional = [
         {
             "code": c.code,
             "name": c.name,
-            "total": counts[c.code],
-            "dominant_category": dominant_cat[c.code],
-            "assessed_count": assessed_counts[c.code],
+            "total": briefs[c.code].total_count,
+            "window_count": briefs[c.code].window_count,
+            "dominant_category": briefs[c.code].dominant_category,
             "href": str(request.url_for("ccmd_view", code=c.code)),
         }
         for c in fun_ccmds
     ]
 
-    rows = [
-        {
+    rows = []
+    for c in ccmds:
+        b = briefs[c.code]
+        ids = _ids_for(c.code)
+        rows.append({
             "code": c.code,
             "name": c.name,
             "href": str(request.url_for("ccmd_view", code=c.code)),
-            "total": counts[c.code],
-            "best_guess": best_guess_counts[c.code],
-            "reviewed": reviewed_counts[c.code],
-            "flagged": flagged_counts[c.code],
-            "assessed": assessed_counts[c.code],
-            "mean_score": (round(mean_scores[c.code], 1)
-                           if mean_scores[c.code] is not None else None),
-            "dominant_category": dominant_cat[c.code],
-        }
-        for c in ccmds
-    ]
+            "total": b.total_count,
+            "window": b.window_count,
+            "reviewed": _note_count(ids, AnalystAction.REVIEWED),
+            "flagged": _note_count(ids, AnalystAction.FLAGGED_FOR_OIC),
+            "assessed": b.assessed_count,
+            "mean_score": b.mean_score,
+            "dominant_category": b.dominant_category,
+            "narrative": b.narrative,
+        })
+
+    # Top-line narrative for the hero.
+    window_total = sum(briefs[c.code].window_count for c in ccmds)
+    most_active = max(briefs.values(), key=lambda br: br.window_count, default=None)
+    hero_narrative = (
+        f"{window_total} article(s) in the last {WINDOW_HOURS} h across "
+        f"{len(ccmds)} commands."
+    )
+    if most_active and most_active.window_count > 0:
+        hero_narrative += (
+            f" Most active: {most_active.code} ({most_active.window_count})."
+        )
 
     ctx = shared_context(request, session, active_tab="HOME")
     ctx.update({
@@ -209,5 +180,7 @@ def home(request: Request, session: Session = Depends(db_session)):
         "regions": regions,
         "functional": functional,
         "last_refresh_label": last_refresh_label,
+        "hero_narrative": hero_narrative,
+        "window_hours": WINDOW_HOURS,
     })
     return templates.TemplateResponse(request, "pages/home.html", ctx)
