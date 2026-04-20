@@ -165,6 +165,11 @@ def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False) -> No
         port=port,
         factory=True,
         reload=reload,
+        # Trust X-Forwarded-* from an upstream TLS terminator (Fly proxy,
+        # nginx, etc.) so url_for() produces https:// links when the edge
+        # is HTTPS. Without this, the browser blocks mixed-content CSS/JS.
+        proxy_headers=True,
+        forwarded_allow_ips="*",
     )
 
 
@@ -208,6 +213,7 @@ def demo(
     uvicorn.run(
         "ccmd_dashboard.web.app:create_app",
         host=host, port=port, factory=True,
+        proxy_headers=True, forwarded_allow_ips="*",
     )
 
 
