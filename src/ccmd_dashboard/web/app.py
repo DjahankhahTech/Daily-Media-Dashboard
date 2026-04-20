@@ -40,6 +40,14 @@ def shared_context(request: Request, session, active_tab: str = "HOME") -> dict:
 
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
+    # Pre-warm the corroboration embedder so the first /assess click
+    # doesn't block on a multi-second cold-start model load. Safe to skip
+    # on failure — corroborate.py degrades cleanly to zero corroborators.
+    try:
+        from ..classify.corroborate import _embedder
+        _embedder()
+    except Exception:
+        pass
     start_scheduler()
     try:
         yield

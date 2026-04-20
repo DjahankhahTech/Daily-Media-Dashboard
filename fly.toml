@@ -40,4 +40,6 @@ primary_region = "ord"
 
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "1gb"
+  # 2 GB gives the sentence-transformers embedder (~400 MB loaded) room
+  # alongside uvicorn + torch + the app itself. 1 GB OOMed during Assess.
+  memory = "2gb"

@@ -43,6 +43,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev \
             --extra ingest --extra classify --extra web
 
+# Pre-download the corroboration embedder so the first Assess click
+# doesn't block on a 90 MB HF Hub download (also removes a runtime
+# network dependency on huggingface.co).
+ENV HF_HOME=/root/.cache/huggingface
+RUN /app/.venv/bin/python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')" \
+    || echo "warning: embedder preload failed; runtime fallback still applies"
+
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
