@@ -42,16 +42,22 @@ def app_with_fixtures(tmp_path_factory):
         feed_usg = Feed(name="DoD News", url="https://example.test/dod", source_tier=1)
         feed_state = Feed(name="TASS", url="https://example.test/tass",
                           source_tier=3, state_affiliation="RU")
-        s.add_all([feed_usg, feed_state])
+        # Neutral tier-3 feed used for an article whose fixture deliberately
+        # inserts no ArticleCCMD row, so the Unassigned tab has something
+        # to render.
+        feed_neutral = Feed(name="Local Weather", url="https://example.test/wx",
+                            source_tier=3)
+        s.add_all([feed_usg, feed_state, feed_neutral])
         s.commit()
         s.refresh(feed_usg)
         s.refresh(feed_state)
+        s.refresh(feed_neutral)
 
         # 1 tagged article, 1 untagged (unassigned), 1 with an MDM assessment.
         a1 = Article(feed_id=feed_usg.id, url="https://example.test/a1",
                      title="INDOPACOM announces Talisman Sabre",
                      content_hash="aaa", published_at=datetime(2026, 4, 1))
-        a2 = Article(feed_id=feed_state.id, url="https://example.test/a2",
+        a2 = Article(feed_id=feed_neutral.id, url="https://example.test/a2",
                      title="Unrelated story about weather",
                      content_hash="bbb")
         a3 = Article(feed_id=feed_usg.id, url="https://example.test/a3",

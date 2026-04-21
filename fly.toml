@@ -1,0 +1,45 @@
+# Fly.io deploy config — prototype / demo tier.
+#
+# First-time setup:
+#   fly launch --no-deploy --copy-config          # accepts this file; picks an app name
+#   fly volumes create ccmd_data --size 1 --region ord
+#   fly secrets set CCMD_ANTHROPIC_API_KEY=sk-...  # only if switching to anthropic
+#   fly deploy
+#
+# Serves the demo dataset out of the box. Flip CCMD_DEMO=0 and
+# CCMD_CLASSIFIER=anthropic once the volume has real ingested data.
+
+app = "adjahankhah"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  CCMD_DATA_DIR = "/data"
+  CCMD_RAW_FEED_DIR = "/data/raw_feeds"
+  CCMD_DATABASE_URL = "sqlite:////data/dashboard.db"
+  CCMD_CLASSIFIER = "stub"
+  CCMD_DEMO = "1"
+  # Background scheduler: pull every active feed every 60 min, then tag.
+  # Requires min_machines_running >= 1 (below) so we don't scale to zero.
+  CCMD_INGEST_ENABLED = "1"
+  CCMD_INGEST_INTERVAL_MINUTES = "60"
+
+[[mounts]]
+  source = "ccmd_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Keep one machine warm so the background ingest scheduler actually ticks.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  # 2 GB gives the sentence-transformers embedder (~400 MB loaded) room
+  # alongside uvicorn + torch + the app itself. 1 GB OOMed during Assess.
+  memory = "2gb"

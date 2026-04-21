@@ -35,11 +35,16 @@
 {% if latest_mdm %}
 <div class="card">
   <div class="head">
-    <strong>Concern score: {{ latest_mdm.concern_score }}</strong>
+    <strong>Concern score: {{ latest_mdm.concern_score if latest_mdm.concern_score is not none else '—' }}</strong>
     <span class="badge mdm-{{ latest_mdm.category.value }}">{{ latest_mdm.category.value.replace('_', ' ') }}</span>
     <span class="muted mono">{{ latest_mdm.classifier_version }} · {{ latest_mdm.assessed_at.strftime('%Y-%m-%d %H:%M') }}</span>
   </div>
-  {% if latest_mdm.reasoning_breakdown.sub_signals %}
+  {% if latest_mdm.failure_reason %}
+  <div class="diagnostic" style="margin-top: 8px">
+    Assessment did not complete cleanly: <span class="mono">{{ latest_mdm.failure_reason }}</span>
+  </div>
+  {% endif %}
+  {% if latest_mdm.reasoning_breakdown and latest_mdm.reasoning_breakdown.sub_signals %}
   <h3>Reasoning breakdown</h3>
   <table class="plain">
     <thead><tr><th>sub-signal</th><th>value</th><th>weight</th><th>contribution</th><th>explanation</th></tr></thead>
@@ -62,11 +67,14 @@
 {% endif %}
 
 <div class="detail-actions">
-  <form method="post" action="{{ url_for('assess_article', article_id=article.id) }}">
-    <button type="submit">Assess (MDM)</button>
+  <form method="post" action="{{ url_for('assess_article', article_id=article.id) }}" class="js-busy-form">
+    <button type="submit" class="secondary" data-busy-label="Re-assessing…">Re-assess (MDM)</button>
+    <span class="muted" style="margin-left: 8px; font-size: 12px">
+      {% if latest_mdm %}MDM runs automatically; re-assess only if you've edited scorer weights{% else %}MDM runs automatically on the next scheduler tick{% endif %}
+    </span>
   </form>
   <form method="post" action="{{ url_for('add_note_form', article_id=article.id) }}" style="display:inline">
-    <button type="submit" class="secondary">Add note</button>
+    <button type="submit">Add note</button>
   </form>
 </div>
 

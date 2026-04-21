@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     per_domain_min_interval_seconds: float = 1.0
     user_agent: str = "ccmd-dashboard/0.1 (unclassified prototype; contact: OSW)"
 
+    # Background ingest scheduler (serve-time only; CLI ingest is unaffected)
+    ingest_enabled: bool = False
+    ingest_interval_minutes: int = 60
+    ingest_extract_full: bool = False
+    ingest_tag_after: bool = True
+    mdm_auto_enabled: bool = True
+    mdm_batch_per_tick: int = 20
+
     # Corroboration
     corroboration_similarity_threshold: float = 0.70
     corroboration_window_hours: int = 72

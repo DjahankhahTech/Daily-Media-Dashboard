@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}CCMD Dashboard{% endblock %} — CCMD Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}" />
+  {% block head_extra %}{% endblock %}
 </head>
 <body>
   <div class="banner">{{ banner }}</div>

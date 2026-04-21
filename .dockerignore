@@ -1,0 +1,28 @@
+.git
+.gitignore
+.github
+
+# local caches / build output
+.venv
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.ruff_cache
+.mypy_cache
+*.egg-info
+dist
+build
+
+# editor state
+.idea
+.vscode
+.DS_Store
+
+# runtime data — volume-mounted on Fly; must not bake into image
+data/
+
+# Not needed in prod image (the Fly demo runs from the canned dataset
+# inside src/ccmd_dashboard/demo_data.jsonl).
+tests/
+docs/

@@ -120,3 +120,116 @@ table.plain th { background: #f1f5f9; color: #475569; font-weight: 600; font-siz
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
 
 .footer { padding: 16px; color: var(--muted); font-size: 12px; text-align: center; }
+
+/* Home page — Leaflet satellite map with AOR overlays */
+.map-wrap { background: #0f172a; border: 1px solid var(--card-border); border-radius: 6px; padding: 8px; }
+.leaflet-map { width: 100%; height: 520px; border-radius: 4px; background: #0f172a; }
+.aor-rect { cursor: pointer; transition: fill-opacity 120ms; }
+.aor-rect:hover { fill-opacity: 0.55 !important; }
+.aor-tooltip {
+  background: rgba(15, 23, 42, 0.92) !important; color: #f1f5f9 !important;
+  border: 0 !important; padding: 2px 6px !important; font-size: 12px !important;
+  font-weight: 600; letter-spacing: 0.02em; box-shadow: none !important;
+}
+.aor-popup { font-size: 13px; color: #0f172a; max-width: 320px; }
+.aor-popup .aor-popup-title { font-size: 14px; margin-bottom: 4px; }
+.aor-popup-themes { margin: 6px 0; font-size: 12px; color: #475569; }
+.aor-popup-themes code { background: #f1f5f9; padding: 1px 5px; border-radius: 3px; margin-right: 2px; font-size: 11px; }
+.aor-popup-headlines { list-style: none; padding: 0; margin: 6px 0; }
+.aor-popup-headlines li { padding: 4px 0; border-top: 1px solid #e2e8f0; font-size: 12px; }
+.aor-popup-headlines li a { font-weight: 600; }
+.aor-popup-headlines .mini-badge {
+  display: inline-block; padding: 0 6px; font-size: 10px; border-radius: 8px;
+  font-weight: 600; margin-left: 4px;
+}
+.mini-badge.cat-likely_reliable       { background: #dcfce7; color: #166534; }
+.mini-badge.cat-requires_verification { background: #fef3c7; color: #854d0e; }
+.mini-badge.cat-significant_concerns  { background: #fed7aa; color: #9a3412; }
+.mini-badge.cat-high_concern          { background: #fee2e2; color: #991b1b; }
+.mini-badge.cat-insufficient_data     { background: #e5e7eb; color: #374151; }
+.aor-popup-link { display: inline-block; margin-top: 4px; font-weight: 600; }
+
+/* Permanent narrative label on each AOR rectangle. */
+.leaflet-tooltip.aor-label {
+  background: rgba(15, 23, 42, 0.78) !important; color: #f8fafc !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35) !important;
+  padding: 6px 10px !important; font-family: system-ui, sans-serif;
+  white-space: normal !important; max-width: 240px !important;
+  font-size: 12px !important; line-height: 1.35;
+}
+.leaflet-tooltip.aor-label::before { display: none; }
+.aor-label-inner .aor-code {
+  font-weight: 700; font-size: 14px; color: #38bdf8; letter-spacing: 0.04em;
+}
+.aor-label-inner .aor-narrative { margin-top: 2px; color: #e2e8f0; }
+.aor-label-inner .aor-headline {
+  margin-top: 4px; font-style: italic; color: #cbd5e1; font-size: 11px;
+}
+
+/* Daily briefing grid. */
+.brief-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px; margin: 8px 0 16px;
+}
+.brief-card {
+  display: block; background: #fff; border: 1px solid var(--card-border);
+  border-left: 4px solid #94a3b8; border-radius: 6px;
+  padding: 10px 12px; color: #0f172a; text-decoration: none;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+.brief-card:hover { border-color: #0f172a; text-decoration: none; box-shadow: 0 2px 6px rgba(15,23,42,0.08); }
+.brief-card.cat-likely_reliable       { border-left-color: #22c55e; }
+.brief-card.cat-requires_verification { border-left-color: #eab308; }
+.brief-card.cat-significant_concerns  { border-left-color: #f97316; }
+.brief-card.cat-high_concern          { border-left-color: #dc2626; }
+.brief-card.cat-insufficient_data     { border-left-color: #94a3b8; }
+.brief-head { display: flex; justify-content: space-between; align-items: baseline; }
+.brief-code { font-weight: 700; letter-spacing: 0.04em; }
+.brief-count { color: var(--muted); font-size: 12px; font-family: ui-monospace, Menlo, monospace; }
+.brief-narrative { margin-top: 4px; font-size: 12px; color: #334155; line-height: 1.45; }
+
+.map-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--muted); padding: 0 4px; }
+.map-legend .spacer { flex: 1; min-width: 16px; }
+.legend-swatch { display: inline-block; width: 18px; height: 12px; border-radius: 2px; border: 1px solid #334155; margin-left: 4px; }
+.legend-swatch.cat-likely_reliable       { background: #22c55e; }
+.legend-swatch.cat-requires_verification { background: #eab308; }
+.legend-swatch.cat-significant_concerns  { background: #f97316; }
+.legend-swatch.cat-high_concern          { background: #dc2626; }
+.legend-swatch.cat-none                  { background: #38bdf8; }
+.legend-lbl { margin-right: 8px; }
+
+/* Dominant-category tint on functional chips (bar matches the map legend). */
+.chip.cat-likely_reliable       { box-shadow: inset 3px 0 0 #22c55e; }
+.chip.cat-requires_verification { box-shadow: inset 3px 0 0 #eab308; }
+.chip.cat-significant_concerns  { box-shadow: inset 3px 0 0 #f97316; }
+.chip.cat-high_concern          { box-shadow: inset 3px 0 0 #dc2626; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
+  background: #f1f5f9; border: 1px solid var(--card-border); border-radius: 999px;
+  font-size: 13px; color: #0f172a;
+}
+.chip.compact { padding: 3px 8px; font-size: 12px; }
+.chip:hover { background: #e2e8f0; text-decoration: none; }
+.chip-code { font-weight: 600; }
+.chip-count { color: var(--muted); font-size: 12px; }
+
+.hero-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.refresh-chip {
+  background: #0f172a; color: #e2e8f0; padding: 6px 12px; border-radius: 999px;
+  font-size: 12px; display: inline-flex; align-items: center; gap: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.refresh-chip strong { color: #38bdf8; font-weight: 600; }
+.refresh-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: refresh-pulse 2.4s infinite;
+}
+@keyframes refresh-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
