@@ -1,0 +1,33 @@
+name: Fly deploy
+
+# Auto-deploy main to Fly. Runs the same `fly deploy` the operator would
+# run locally, but from GitHub-hosted runners against the Dockerfile
+# + fly.toml in the repo. Requires a FLY_API_TOKEN repo secret — create
+# one with `fly tokens create deploy -a adjahankhah` and add via Settings
+# -> Secrets and variables -> Actions.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Serialize deploys so an in-flight rollout doesn't race with the next push.
+concurrency:
+  group: fly-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy app to Fly.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
